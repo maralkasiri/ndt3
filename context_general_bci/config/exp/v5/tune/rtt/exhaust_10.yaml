@@ -1,0 +1,7 @@
+# @package _global_
+
+defaults:
+  - _10
+  - ../../_scratch
+
+sweep_cfg: scratch_exhaustive_control

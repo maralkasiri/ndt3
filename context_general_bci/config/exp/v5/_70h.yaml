@@ -1,0 +1,29 @@
+# @package _global_
+dataset:
+  datasets:
+  - perich.* # about 43h, 4 monkeys
+  - delay.* # 12h
+  - churchland_maze.*
+
+  - miller_Jango.* # I didn't actually use this elsewhere, so pull it now!
+  - Loco.*
+  # Where else for public data.... a lot of it...
+
+# For eval, about 1.5h of data
+  - chase_Rocky.*
+  - flint.*
+
+  exclude_datasets:
+  - falcon.* # Rouse M1 and 7D H1
+  - Indy.*
+  - mayo.*
+
+
+# ?
+# Smoketesting...
+train:
+  batch_size: 512 # should fit on 40G
+  max_batch_size: 512
+  effective_batch_size: 8192
+
+notes: "Breaks the rules and touches excluded data, which precludes this from some potential analyses. But we want to make a model with public data and intermediate diversity."

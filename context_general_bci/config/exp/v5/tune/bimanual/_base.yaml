@@ -1,0 +1,32 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 5
+  deo:
+    chop_size_ms: 1000
+  datasets:
+  - t5_06_02_2021
+  - t5_06_04_2021
+  - t5_06_23_2021
+  - t5_06_28_2021
+  - t5_06_30_2021
+  - t5_07_12_2021
+  - t5_07_14_2021
+  - t5_10_11_2021
+  - t5_10_13_2021
+  eval_datasets:
+  - t5_06_02_2021
+  - t5_06_04_2021
+  - t5_06_23_2021
+  - t5_06_28_2021
+  - t5_06_30_2021
+  - t5_07_12_2021
+  - t5_07_14_2021
+  - t5_10_11_2021
+  - t5_10_13_2021
+
+  eval_ratio: 0.8 # About 12K or 3 hours of data in total. Reducing to 45m training.
+  eval_split_continuous: true
+

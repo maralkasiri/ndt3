@@ -1,0 +1,9 @@
+# @package _global_
+
+defaults:
+  - _cursor
+  - ../_350m
+  - _350m
+
+model:
+  lr_init: 1e-4

@@ -1,0 +1,16 @@
+# @package _global_
+dataset:
+  datasets:
+  - Perich_C.* # Chewie
+
+  # Eval contributes about 1.5h of data, should be marginal effect.
+  - chase_Rocky.*
+  - flint.*
+
+# About 50K trials
+train:
+  batch_size: 512 # should fit on 40G
+  max_batch_size: 512
+  effective_batch_size: 4096
+
+notes: "Testing the bare minimum of pretraining."

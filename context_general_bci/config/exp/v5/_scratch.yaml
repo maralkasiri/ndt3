@@ -1,0 +1,9 @@
+# @package _global_
+
+model:
+  hidden_size: 512 # Smoketests don't show hidden size have big effect, we def don't need full capacity for experts
+  lr_ramp_steps: 50
+  lr_decay_steps: 1500
+sweep_cfg: "full_scratch"
+inherit_exp: ""
+inherit_tag: ""

@@ -1,0 +1,24 @@
+# @package _global_
+dataset:
+  datasets:
+  - perich.* # about 43h, 4 monkeys
+  - delay.* # 12h
+  - churchland_maze.* # ?
+  - gallego.*
+  - dyer_co.*
+  - miller.*
+  - Loco.*
+  - Indy.*
+  - flint.*
+  eval_datasets: []
+  exclude_datasets: []
+
+
+# ?
+# Smoketesting...
+train:
+  batch_size: 512 # should fit on 40G
+  max_batch_size: 512
+  effective_batch_size: 8192
+
+notes: "Didn't run, just tallying roughly public data sources."

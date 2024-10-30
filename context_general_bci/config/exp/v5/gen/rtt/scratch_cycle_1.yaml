@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - ../_scratch
+  - _rtt
+  - ../_co16/_cycle_1
+inherit_exp: ''
+inherit_tag: ''

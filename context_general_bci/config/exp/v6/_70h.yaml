@@ -1,0 +1,26 @@
+# @package _global_
+dataset:
+  datasets:
+  - perich.* # about 43h, 4 monkeys
+  - delay.* # 12h
+  - churchland_maze.*
+
+  - miller_Jango.* # I didn't actually use this elsewhere, so pull it now!
+  - Loco.*
+
+  # Eval contributes about 1.5h of data, should be marginal effect.
+  - chase_Rocky.*
+  - flint.*
+
+  # New in V6
+  - batista-Earl-Iso.* # Sorted
+
+  exclude_datasets:
+  - falcon.* # Rouse M1 and 7D H1
+  - Indy.*
+  - mayo.*
+
+train:
+  batch_size: 512 # should fit on 40G
+  max_batch_size: 512
+  effective_batch_size: 8192

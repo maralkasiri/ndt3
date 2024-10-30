@@ -1,0 +1,9 @@
+# @package _global_
+dataset:
+  datasets:
+  # Eval sets
+  - flint.*
+  - chase_Rocky.* # Included in Chase above
+
+  # New in V6
+  - batista-Earl-Iso.* # Sorted

@@ -1,0 +1,67 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 3
+  explicit_norm: './data/calib_pitt_calib_broad_norm.pt'
+  split_conditions: True
+  eval_split_continuous: False
+  train_val_split_continuous: False
+
+  pitt_co:
+    respect_trial_boundaries: True
+    explicit_labels: ['y', 'z']
+    chop_size_ms: 1000
+    condition_bins: 16
+  data_keys:
+    - DataKey.spikes
+    - DataKey.bhvr_vel
+    - DataKey.condition
+    - DataKey.bhvr_mask
+
+  datasets:
+  # Pursuit smoketest
+  - P4Lab_56_1$
+  - P4Lab_56_2$
+  - P4Lab_57_1$
+  - P4Lab_58_1$
+  - P4Lab_58_2$
+  - P4Lab_59_2$
+  - P4Lab_59_3$
+  - P4Lab_59_6$
+  - P4Lab_75_1$
+  - P4Lab_77_1$
+  - P4Lab_85_1$
+  # New day
+  - P4Lab_86_1$
+  - P4Lab_86_7$
+
+  eval_datasets:
+  # Pursuit smoketest
+  - P4Lab_56_1$
+  - P4Lab_56_2$
+  - P4Lab_57_1$
+  - P4Lab_58_1$
+  - P4Lab_58_2$
+  - P4Lab_59_2$
+  - P4Lab_59_3$
+  - P4Lab_59_6$
+  - P4Lab_75_1$
+  - P4Lab_77_1$
+  - P4Lab_85_1$
+  - P4Lab_86_1$
+  - P4Lab_86_7$
+
+
+train:
+  # autoscale_batch_size: False
+  batch_size: 32
+  max_batch_size: 128
+  effective_batch_size: 128
+  patience: 50
+  # val_check_epochs: 5 # No actual accrued attractor signs, discard
+  log_every_n_steps: 1
+  val_check_interval: 1
+save_num: -1 # Save all checkpoints for longitudinal analysis
+sweep_cfg: '' # No sweeping for now

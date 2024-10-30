@@ -1,0 +1,12 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _45m
+  - _min
+
+train:
+  batch_size: 64
+  effective_batch_size: 128
+
+# New eval set has only 905 data points for calibration (about 30 minutes)

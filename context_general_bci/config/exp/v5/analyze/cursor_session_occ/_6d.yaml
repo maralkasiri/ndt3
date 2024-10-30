@@ -1,0 +1,11 @@
+# @package _global_
+
+dataset:
+  datasets:
+  # - pitt_intra_session_pitt_co_P4Home_52.* # 7 day
+  - pitt_intra_session_pitt_co_P4Home_53.* # 6 day
+  - pitt_intra_session_pitt_co_P4Home_54.* # 5 day
+  - pitt_intra_session_pitt_co_P4Home_55.* # 4 day
+  - pitt_intra_session_pitt_co_P4Home_56.* # 3 day gap
+  - pitt_intra_session_pitt_co_P4Home_58.* # 1 day
+  - pitt_intra_session_pitt_co_P4Home_59.*

@@ -1,0 +1,16 @@
+# @package _global_
+# OL Grasp set (from GB's exps)
+defaults:
+  - ../_default
+dataset:
+  explicit_norm: './data/calib_pitt_grasp_norm.pt'
+  behavior_dim: 2
+  pitt_co:
+    respect_trial_boundaries: False
+    explicit_labels: ['f']
+    chop_size_ms: 1000
+  datasets:
+  - calib_pitt_grasp.*
+  - eval_pitt_grasp.*
+  eval_datasets:
+  - eval_pitt_grasp.*

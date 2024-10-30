@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 3
+  datasets:
+  - calib_s1rtt_calib.*
+  - eval_s1rtt.*
+  eval_datasets:
+  - eval_s1rtt.*
+  data_keys:
+  - DataKey.spikes
+  - DataKey.bhvr_vel
+  odoherty_rtt:
+    arrays:
+    - Indy-S1
+    - Loco-S1
+    chop_size_ms: 1000
+train:
+  max_batch_size: 64
+  effective_batch_size: 64
+  patience: 50

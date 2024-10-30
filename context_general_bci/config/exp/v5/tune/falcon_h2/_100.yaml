@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - _base
+dataset:
+  scale_ratio: 1.0
+train:
+  batch_size: 16 # about 23G, can't hit 32.
+  effective_batch_size: 128
+  max_batch_size: 32
+  

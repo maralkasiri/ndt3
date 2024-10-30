@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - ../_joint
+  - _100
+  - _base

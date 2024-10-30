@@ -1,0 +1,21 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 3
+  explicit_norm: './data/calib_odoherty_calib_rtt_norm.pt'
+  odoherty_rtt:
+    chop_size_ms: 1000
+  eval_datasets:
+  - eval_odoherty_eval_rtt-Indy-20170131_02.*
+  eval_ratio: 1.0
+  
+# Total about 346 training trials, batch size 32 is fine.
+train:
+  batch_size: 32
+  effective_batch_size: 32
+  max_batch_size: 32
+
+sweep_cfg: 'full_ft' # Actually, too noisy. We need multi-seed for plots to be legible.
+# sweep_cfg: 'simple_ft' # Due to burden on storage/compute/time, do not run multiple seeds per model. Multi-dataset acting as multi-seed.

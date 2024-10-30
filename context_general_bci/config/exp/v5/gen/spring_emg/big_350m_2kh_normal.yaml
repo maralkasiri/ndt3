@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - _base
+  - _normal
+  - ../../_350m
+
+sweep_cfg: 'full_ft'

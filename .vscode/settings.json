@@ -1,0 +1,20 @@
+{
+    "files.exclude": {
+        "data/": true,
+        "data/preprocessed/": true,
+        "outputs/": true,
+        "slurm_logs/": true,
+        "wandb/": true
+    },
+    "python.analysis.typeCheckingMode": "basic",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
+    "files.watcherExclude": {
+        "data/": true,
+        "outputs/": true,
+        "slurm_logs/": true,
+        "wandb/": true
+    }
+}

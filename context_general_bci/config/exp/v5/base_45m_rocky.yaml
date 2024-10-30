@@ -1,0 +1,15 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _25h
+  - _45m
+
+dataset:
+  datasets:
+  - flint.*
+  - chase_Rocky.*
+  - schwartz_Rocky.*
+
+# About 189 hours - ~200.
+notes: Quick run to show PT subject gap with only Rocky data.

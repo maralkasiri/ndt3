@@ -1,0 +1,35 @@
+# @package _global_
+
+dataset:
+  datasets:
+  # - odoherty_rtt-Indy-20161005.*
+  # - odoherty_rtt-Indy-20161006.*
+  # - odoherty_rtt-Indy-20161007.*
+  # - odoherty_rtt-Indy-20161011.*
+  # - odoherty_rtt-Indy-20161013.*
+  # - odoherty_rtt-Indy-20161014.*
+  # - odoherty_rtt-Indy-20161017.*
+  # - odoherty_rtt-Indy-20161024.*
+  # - odoherty_rtt-Indy-20161025.*
+  # - odoherty_rtt-Indy-20161026.*
+  # - odoherty_rtt-Indy-20161027.*
+
+  # - odoherty_rtt-Indy-20161206.*
+  # - odoherty_rtt-Indy-20161207.*
+  # - odoherty_rtt-Indy-20161212.*
+  # - odoherty_rtt-Indy-20161220.*
+
+  - odoherty_rtt-Indy-20170123.*
+  - odoherty_rtt-Indy-20170124.*
+  - odoherty_rtt-Indy-20170127.*
+
+  # - calib_odoherty_calib_rtt-Indy-20170131_02.*
+  - eval_odoherty_eval_rtt-Indy-20170131_02.*
+
+# About 2K trials
+train:
+  batch_size: 128
+  max_batch_size: 128
+  effective_batch_size: 128
+
+sweep_cfg: 'simple_ft'

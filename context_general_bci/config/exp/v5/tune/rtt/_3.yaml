@@ -1,0 +1,11 @@
+# @package _global_
+
+# 3% yields about 1-2 trials per calibration session. 
+defaults:
+  - _rtt
+dataset:
+  scale_ratio: 0.03
+train:
+  max_batch_size: 128
+  effective_batch_size: 256
+  autoscale_batch_size: False

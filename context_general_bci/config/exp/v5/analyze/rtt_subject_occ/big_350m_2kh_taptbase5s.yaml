@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - _base
+  - ../../_350m
+  - _base_5s
+
+sweep_cfg: 'simple_ft'

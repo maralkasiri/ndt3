@@ -1,0 +1,19 @@
+# @package _global_
+
+defaults:
+  - ../_co16/_cycle_1
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_linear # MSE head
+    metrics:
+    - Metric.kinematic_r2
+dataset:
+  heldin_conditions: 
+    - 0
+    - 15  
+  eval_conditions:
+    - 7
+    - 8
+inherit_tag: base_45m_1kh_mse

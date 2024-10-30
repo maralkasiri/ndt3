@@ -1,0 +1,18 @@
+# @package _global_
+dataset:
+  datasets:
+  # 1kh? TODO vet that time
+  - churchland.*
+  - gallego.*
+  - dyer_co.*
+  - delay.*
+  - miller.*
+  - flint.*
+  - Rouse_A.*
+  - Rouse_B.* # misses P/Q.
+  - chase.*
+  - perich.* # About 170h
+
+  - limblab.* # about 650h
+  - hatsopoulos.* # about 140h
+  # ends up about 1100 hours

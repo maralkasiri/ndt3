@@ -1,0 +1,29 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _200h
+  - _45m
+
+dataset:
+  datasets:
+  - limblab.*
+  eval_datasets: []
+  exclude_datasets:
+  # We forgot to exclude these in preprocessing so will have to flag them by alias
+  - limblab.*model.*
+  - limblab.*neuralControl.*
+  - limblab.*test.*
+  - limblab.*FES.*
+  # - limblab.*lfp.*
+  - limblab.*electrode.*
+  - limblab.*terrible.*
+  - limblab.*no_spikes.*
+  # - limblab.*sensory.*
+  # - limblab.*cuneate.*
+  - limblab.*_BC.*
+  limblab:
+    chop_size_ms: 2000
+train:
+  batch_size: 32
+  effective_batch_size: 1024

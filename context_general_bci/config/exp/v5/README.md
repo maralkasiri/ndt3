@@ -1,0 +1,3 @@
+Fairly confident this batch will be the controlled ones for the paper.
+- To address nonconvergence, we should fix epochs (300 epochs chosen bc 350M might still be significantly gaining in that period https://wandb.ai/joelye9/ndt3/reports/350M-Runs-and-epoch-tuning--Vmlldzo4NTgyODMz) 
+- Reduce context down to 2s in pretraining. 1s is used during eval, anyway, and it is just additional compute to run unjustifiably long ctx. ICL is unlikely at this point in time.

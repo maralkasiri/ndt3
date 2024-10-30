@@ -1,0 +1,20 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _45m
+  - _min
+
+dataset:
+  augmentations:
+    - shuffle_spikes
+model:
+  task:
+    task_weights: [1.0, 10.0, 0., 0.] # Scale up spike loss to be comparable to neural loss
+    block_prefix_loss: True
+train:
+  batch_size: 64
+  effective_batch_size: 128
+
+# New eval set has only 905 data points for calibration (about 30 minutes)
+notes: "Corrected to include block prefix loss and loss rescaling."

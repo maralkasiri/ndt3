@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _min
+  - _45m
+train:
+  batch_size: 64
+
+dataset:
+  augmentations:
+    - shuffle_spikes
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.constraints
+    - ModelTask.return_context
+    task_weights: [1.0, 0., 0., 0.] # Scale up spike loss to be comparable to neural loss
+    metrics: []
+    block_prefix_loss: True
+
+notes: "Testing rep learning."

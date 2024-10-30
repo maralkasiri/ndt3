@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _2kh
+  - _45m
+train:
+  batch_size: 32 # Sadly, 48 explodes

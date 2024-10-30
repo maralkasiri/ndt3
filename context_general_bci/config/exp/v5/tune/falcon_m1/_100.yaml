@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - _base
+dataset:
+  scale_ratio: 1.0
+train:
+  batch_size: 128 # 256 OOM? on nersc 40G
+  effective_batch_size: 1024
+  max_batch_size: 1024
+  

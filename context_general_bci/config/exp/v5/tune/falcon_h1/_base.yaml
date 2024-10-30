@@ -1,0 +1,16 @@
+# @package _global_
+
+# Note unlike m1 / m2, h1 respects trial boundaries necessarily for high perf. 2s insuff.
+# Typical lengths are around 4s. Note this is a length change from pretraining, and we have no explicit long context training.
+
+defaults:
+  - ../_default
+dataset:
+  max_length_ms: 4000 # Restrict to 4s limit respected in FALCON paper
+  max_trial_length: 200
+  
+  behavior_dim: 8
+  explicit_alias_to_session: true
+  datasets:
+  - falcon_FALCONH1.*
+  # Larger blocks established in falcon manuscript, even if vulnerable to trialization.

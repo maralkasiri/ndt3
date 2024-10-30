@@ -1,0 +1,9 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _1kh
+  - _350m
+  - _350m_tr
+train:
+  batch_size: 8

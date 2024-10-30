@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - _earldco
+  - _center
+sweep_cfg: "full_ft"

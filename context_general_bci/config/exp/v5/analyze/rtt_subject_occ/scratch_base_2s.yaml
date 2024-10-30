@@ -1,0 +1,9 @@
+# @package _global_
+
+defaults:
+  - _base
+  - ../../_scratch
+  - _base_2s
+
+sweep_cfg: ''
+# sweep_cfg: 'simple_scratch'

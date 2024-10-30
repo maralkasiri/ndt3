@@ -1,0 +1,14 @@
+# @package _global_
+dataset:
+  datasets:
+  - churchland.*
+  - gallego.*
+  - dyer_co.*
+  - delay.*
+  - miller.*
+  - flint.*
+  - rouse.*
+  - chase.*
+  - perich.*
+
+  - schwartz.* # about 730h

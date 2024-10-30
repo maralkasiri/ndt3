@@ -1,0 +1,10 @@
+# @package _global_
+
+defaults:
+  - _100
+
+model:
+  kinematic_token_maskout_schedule: "constant"
+  kinematic_token_maskout: 0.
+
+inherit_exp: "v5/ablate"

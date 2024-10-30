@@ -1,0 +1,14 @@
+# @package _global_
+
+defaults:
+  - ../_default
+  - ../_200h
+  - ../_45m
+
+model:
+  neurons_per_token: 16
+  max_spatial_position: 58 # Allocate 10 more (320 / 16) - (320 / 32)
+
+
+train:
+  batch_size: 24 # Lower batch size required, given more neural tokens

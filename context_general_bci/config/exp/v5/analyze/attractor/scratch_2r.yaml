@@ -1,0 +1,26 @@
+# @package _global_
+
+defaults:
+  - _rtt
+  - ../../_scratch
+
+dataset:
+  heldin_conditions: 
+  - 0
+  - 15
+  eval_conditions:
+  # - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  # - 6
+  - 7
+  - 8
+  # - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  # - 14 
+sweep_cfg: ''

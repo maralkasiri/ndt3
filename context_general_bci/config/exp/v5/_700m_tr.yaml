@@ -1,0 +1,6 @@
+# @package _global_
+# Pretraining related config
+model:
+  lr_init: 1e-4 # tick down from 4e-4. 2e-4 is not enough on 200h_v2, 1e-4 is stable for both 200h and 2kh.
+train:
+  batch_size: 4 # 40G, 2s

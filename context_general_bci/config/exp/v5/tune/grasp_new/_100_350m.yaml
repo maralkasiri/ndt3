@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - _100
+train:
+  batch_size: 16

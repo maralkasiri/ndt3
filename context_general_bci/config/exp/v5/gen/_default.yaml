@@ -1,0 +1,39 @@
+# @package _global_
+
+defaults:
+  - ../_default
+model:
+  # Defaults for fine-tuned models
+  lr_ramp_steps: 20 # Faster than from scratch
+  lr_decay_steps: 1000 # ideal size depends on size of dataset; but we don't have that budget. This is set by examining dynamic range of early stop; for from scratch we see 300-1500 as high bound; FT-ing at 50-500.
+  lr_interval: epoch # FT-ing makes more sense in epoch terms than step terms
+  lr_schedule: cosine_timm
+  lr_init: 4e-4
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_linear # MSE head
+dataset:
+  datasets: [] # To be overridden
+  exclude_datasets: []
+  eval_ratio: 1. # For explicitly split datasets
+  eval_datasets: []
+  sparse_constraints: False # For augment logic to pass
+  sparse_rewards: False # For augment logic to pass
+  data_keys:
+  - DataKey.spikes
+  - DataKey.bhvr_vel
+  - DataKey.bhvr_mask
+train:
+  epochs: 1000 # FT needs across tasks span from 10 to several hundred epochs
+  autoscale_batch_size: true
+  patience: 100 # Need higher for from scratch to become nontrivial
+  early_stop_metric: val_kinematic_r2
+save_r2: True
+save_last: False # kill save last for space. May be auto-resumption a little a funky.
+save_val_loss: False
+sweep_cfg: "simple_ft" # Smoketesting, don't need full until committed in subexps
+sweep_mode: "grid"
+inherit_exp: "v5"
+inherit_tag: CROP_LAST
+cancel_if_run_exists: True

@@ -1,0 +1,13 @@
+# @package _global_
+
+defaults:
+  - ../_default
+  - ../_1kh_human
+  - ../_45m
+
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_linear # MSE head
+notes: "Remove constraint / return. Relevant for human data."

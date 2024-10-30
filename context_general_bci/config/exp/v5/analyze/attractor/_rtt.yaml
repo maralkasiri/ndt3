@@ -1,0 +1,33 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 3
+  explicit_norm: './data/calib_odoherty_calib_rtt_norm.pt'
+  split_conditions: True
+  eval_split_continuous: False
+  train_val_split_continuous: False
+
+  odoherty_rtt:
+    chop_size_ms: 1000 # Ignored
+    split_by_target: True
+    condition_bins: 16
+  data_keys:
+    - DataKey.spikes
+    - DataKey.bhvr_vel
+    - DataKey.condition
+    - DataKey.bhvr_mask
+
+  datasets:
+  - heldout_odoherty_rtt.*
+  eval_datasets:
+  - heldout_odoherty_rtt.* 
+train:
+  autoscale_batch_size: False
+  batch_size: 64
+  max_batch_size: 64
+  effective_batch_size: 64
+  patience: 50
+save_num: -1 # Save all checkpoints for longitudinal analysis
+sweep_cfg: '' # No sweeping for now

@@ -1,0 +1,9 @@
+# @package _global_
+
+defaults:
+  - _cursor
+  - ../_scratch
+sweep_cfg: ''
+
+model:
+  lr_init: 3e-4

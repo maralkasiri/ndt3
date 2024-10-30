@@ -1,0 +1,22 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  cst:
+    chop_size_ms: 1000
+  behavior_dim: 2
+  datasets:
+  - calib_cst_calib.*
+  - eval_cst_eval.*
+  eval_datasets:
+  - eval_cst_eval.*
+  exclude_datasets: # Flagged as null data in preproc
+  - Batista_F-Ford_20180501
+  - Batista_F-Ford_20180511
+  - Batista_F-Ford_20180509
+  - Batista_F-Ford_20180510
+  - Batista_F-Ford_20180502
+  data_keys:
+  - DataKey.spikes
+  - DataKey.bhvr_vel

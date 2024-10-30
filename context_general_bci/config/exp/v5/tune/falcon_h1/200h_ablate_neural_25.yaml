@@ -1,0 +1,12 @@
+# @package _global_
+
+defaults:
+  - _25
+
+model:
+  task:
+    tasks:
+    - ModelTask.spike_context
+    - ModelTask.kinematic_linear # MSE head
+
+inherit_exp: "v5/ablate"

@@ -1,0 +1,52 @@
+# @package _global_
+
+defaults:
+  - ../_default
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_linear # MSE head
+    metrics:
+    - Metric.kinematic_r2
+dataset:
+  scale_ratio: 1.0
+  split_conditions: True
+  miller:
+    respect_trial_boundaries: True
+    explicit_labels:
+    - y
+    - z
+  # These are the 3 evaluation sets in primary scaling. Be wary of data dup.
+  datasets:
+  - miller_Jango.* # -Jango_20150730_001
+  eval_datasets:
+  - miller_Jango-Jango_20150730_001
+  - miller_Jango-Jango_20150731_001
+  - miller_Jango-Jango_20150801_001
+  - miller_Jango-Jango_20150805_001
+  - miller_Jango-Jango_20150806_001
+  - miller_Jango-Jango_20150807_001
+  - miller_Jango-Jango_20150808_001
+  - miller_Jango-Jango_20150809_001
+  - miller_Jango-Jango_20150820_001
+  - miller_Jango-Jango_20150824_001
+  - miller_Jango-Jango_20150825_001
+  - miller_Jango-Jango_20150826_001
+  - miller_Jango-Jango_20150827_001
+  - miller_Jango-Jango_20150828_001
+  - miller_Jango-Jango_20150831_001
+  - miller_Jango-Jango_20150905_001
+  - miller_Jango-Jango_20150906_001
+  - miller_Jango-Jango_20150908_001
+  - miller_Jango-Jango_20151029_001
+  - miller_Jango-Jango_20151102_001
+  eval_ratio: 0.5
+  # ! Incomplete eval_ratio depends on further condition masking by train_heldin_conditions
+train:
+  autoscale_batch_size: False
+  batch_size: 64
+  max_batch_size: 64
+  effective_batch_size: 64
+  patience: 50
+sweep_cfg: 'simple_ft' # No sweeping for now

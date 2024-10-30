@@ -1,0 +1,18 @@
+# @package _global_
+
+defaults:
+  - ../_default
+  - ../_200h
+  - ../_45m
+
+model:
+  task:
+    decode_hl_gauss_sigma_bin_ratio: .75
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_infill # linear is MSE, this is classification
+    - ModelTask.constraints
+    - ModelTask.return_context
+train:
+  early_stop_metric: val_kinematic_r2
+notes: "Use classification over MSE, i.e. v4 primary exps."

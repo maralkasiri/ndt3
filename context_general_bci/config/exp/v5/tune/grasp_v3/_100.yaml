@@ -1,0 +1,10 @@
+# @package _global_
+
+defaults:
+  - _grasp_h
+dataset:
+  scale_ratio: 1.0
+train:
+  batch_size: 128
+  effective_batch_size: 128
+  max_batch_size: 128

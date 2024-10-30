@@ -1,0 +1,8 @@
+# @package _global_
+
+dataset:
+  datasets:
+  - calib_pitt_trialized_broad.*
+  - pitt_intra_session_pitt_co_P4Home_59.*
+
+notes: "s stands for session, we'll go equivalently, 2 sessions, 4 sessions, 6 sessions of other subject data. Ideally multi-subject"

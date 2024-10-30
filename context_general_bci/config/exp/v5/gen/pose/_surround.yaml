@@ -1,0 +1,8 @@
+# @package _global_
+
+dataset:
+  # heldin_conditions: 
+  train_heldin_conditions: 
+   # 1-7
+  - 1
+  - 7

@@ -1,0 +1,22 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 4
+  explicit_norm: './data/calib_pitt_calib_broad_norm.pt'
+  pitt_co:
+    respect_trial_boundaries: False
+    chop_size_ms: 1000
+  eval_datasets:
+  - pitt_intra_session_pitt_co_P4Home_59.*
+  eval_ratio: 0.75 # 120s -> 30s of calibration
+  eval_split_continuous: True
+
+# Total about 346 training trials, batch size 32 is fine.
+train:
+  batch_size: 32
+  effective_batch_size: 32
+  max_batch_size: 32
+
+sweep_cfg: 'simple_ft' # Due to burden on storage/compute/time, do not run multiple seeds per model. Multi-dataset acting as multi-seed.

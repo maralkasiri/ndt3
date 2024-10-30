@@ -1,0 +1,18 @@
+# @package _global_
+dataset:
+  datasets:
+  - Perich_C.* # Chewie
+
+  # Eval contributes about 1.5h of data, should be marginal effect.
+  - chase_Rocky.*
+  - flint.*
+
+
+  # New in V6
+  - batista-Earl-Iso.* # Sorted
+
+# About 50K trials
+train:
+  batch_size: 512 # should fit on 40G
+  max_batch_size: 512
+  effective_batch_size: 4096

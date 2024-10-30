@@ -1,0 +1,12 @@
+# @package _global_
+
+defaults:
+  - ../_default
+  - ../_200h
+  - ../_45m
+
+model:
+  kinematic_token_maskout_schedule: "constant"
+  kinematic_token_maskout: 0.
+
+notes: "Ablate kinematic maskout. Mainly interested in downstream scores."

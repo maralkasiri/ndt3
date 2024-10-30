@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - _earldco
+  - _center
+  - ../../_scratch
+
+sweep_cfg: 'full_scratch'

@@ -1,0 +1,13 @@
+# @package _global_
+
+defaults:
+  - ../_default
+  - ../_200h
+  - ../_45m
+
+model:
+  task:
+    tasks:
+    - ModelTask.spike_context
+    - ModelTask.kinematic_linear # MSE head
+notes: "Remove neural reconstruction loss."

@@ -1,0 +1,22 @@
+# @package _global_
+
+dataset:
+  datasets:
+  # - Loco-20170210_03
+  # - Loco-20170213_02
+  # - Loco-20170214_02
+  # - Loco-20170215_02
+  # - Loco-20170216_02
+  # - Loco-20170217_02
+  # - Loco-20170227_04
+  # - Loco-20170228_02
+  # - Loco-20170301_05
+  # - Loco-20170302_02
+
+  - calib_odoherty_calib_rtt-Indy-20170131_02.*
+  - eval_odoherty_eval_rtt-Indy-20170131_02.*
+
+train:
+  batch_size: 8
+  max_batch_size: 8
+  effective_batch_size: 8

@@ -1,0 +1,20 @@
+# @package _global_
+dataset:
+  datasets:
+  # 200h
+  - churchland.*
+  - gallego.*
+  - dyer_co.*
+  - delay.*
+  - miller.*
+  - Rouse_A.*
+  - Rouse_B.* # misses P/Q.
+  - chase_Nigel-2019.* # crop full set into about 50h, bumps 175 to 225.
+  - perich.*
+
+  # Eval sets
+  - flint.*
+  - chase_Rocky.*
+
+  # New in V6
+  - batista-Earl-Iso.* # Sorted

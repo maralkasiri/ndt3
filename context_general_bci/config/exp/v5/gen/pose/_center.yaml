@@ -1,0 +1,8 @@
+# @package _global_
+
+dataset:
+  # heldin_conditions: 
+  train_heldin_conditions: 
+  - 5 # 1-7
+  # 50%: 490s across sessions, about 1m per session
+  # Total: 980s across sessions

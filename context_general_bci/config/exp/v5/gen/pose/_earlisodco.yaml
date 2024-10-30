@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - ../_default
+model:
+  task:
+    metrics:
+    - Metric.kinematic_r2 # remove weighting so we don't need to specify behavior dim, bc we have multidim readout
+dataset:
+  datasets:
+  - batista-Earl-Iso.*
+  - batista-Earl-DelayedCenterOut.*
+  eval_datasets:
+  - batista-Earl-DelayedCenterOut.*
+  split_conditions: True
+  eval_ratio: 1.0
+
+# About 2K when restricting DCO to 1 condition
+train:
+  batch_size: 256
+  effective_batch_size: 256
+  max_batch_size: 256
+notes: "Does seeing posture space spanned in different task (different session), same monkey, help?"

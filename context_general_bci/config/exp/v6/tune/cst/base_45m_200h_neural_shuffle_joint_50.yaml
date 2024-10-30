@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - ../_joint
+  - _50
+  - _base
+
+# Don't shuffle at this point, will degrade the readout without kin ICL.

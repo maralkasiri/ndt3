@@ -1,0 +1,10 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _2500h
+  - _350m
+  - _350m_tr
+
+train:
+  batch_size: 8 # Think Miller data may be OOM-ing

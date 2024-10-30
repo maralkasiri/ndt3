@@ -1,0 +1,29 @@
+# @package _global_
+# OL Grasp set (from GB's exps)
+defaults:
+  - ../_default
+dataset:
+  explicit_norm: './data/calib_pitt_grasp_norm.pt'
+  behavior_dim: 2
+  pitt_co:
+    respect_trial_boundaries: False
+    explicit_labels: ['f']
+    # About 1.2 hrs of data in total
+    # 1s chops + heuristic sanitize (drop constant perids) will miss ramps, leaving only about 0.5 hrs of data
+    # Use longer chops to preserve more data // be more reflective of current grasp decoder training (even if encouraging overfit to trial structure)
+    # 4s yields about 50 min.
+    # 2s yields about 35 min. Preferred to not go OOD (4s) to avoid biasing for long context eval.
+    # 1s yields like, 30 min?
+    chop_size_ms: 1000
+
+    # chop_size_ms: 1000
+    # only about 700 calib trials in this settings
+  datasets:
+  # - calib_pitt_grasp.*
+  # - eval_pitt_grasp.*
+  # Reduce to single subject for control
+  - calib_pitt_grasp_pitt_co_P3.*
+  - eval_pitt_grasp_pitt_co_P3.*
+  eval_datasets:
+  # - eval_pitt_grasp.*
+  - eval_pitt_grasp_pitt_co_P3.*

@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - _25
+train:
+  batch_size: 2 # 24G max

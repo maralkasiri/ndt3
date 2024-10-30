@@ -1,0 +1,21 @@
+# @package _global_
+
+dataset:
+  datasets:
+  # Start
+  - pitt_intra_session_pitt_co_P4Home_52_1$
+  - pitt_intra_session_pitt_co_P4Home_53_1$
+  - pitt_intra_session_pitt_co_P4Home_54_1$
+  - pitt_intra_session_pitt_co_P4Home_55_3$
+  - pitt_intra_session_pitt_co_P4Home_56_2$
+  - pitt_intra_session_pitt_co_P4Home_58_1$
+
+  # End
+  - pitt_intra_session_pitt_co_P4Home_52_9$
+  - pitt_intra_session_pitt_co_P4Home_53_10$
+  - pitt_intra_session_pitt_co_P4Home_54_9$
+  - pitt_intra_session_pitt_co_P4Home_55_10$
+  - pitt_intra_session_pitt_co_P4Home_56_10$
+  - pitt_intra_session_pitt_co_P4Home_58_12$
+  scale_ratio: 0.5 # For training sessions, 50%, to match eval ratio, and thus `adj` training data.
+  scale_limit_per_eval_session: -1 # Force zero-shot to control for data

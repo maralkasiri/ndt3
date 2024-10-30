@@ -1,0 +1,29 @@
+# @package _global_
+
+defaults:
+  - ../_default
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_linear # MSE head
+    metrics:
+    - Metric.kinematic_r2
+dataset:
+  scale_ratio: 1.0
+  split_conditions: True
+  
+  # These are the 3 evaluation sets in primary scaling. Be wary of data dup.
+  datasets:
+  - hatsopoulos_Velma.*
+  eval_datasets:
+  - hatsopoulos_Velma.*
+  eval_ratio: 0.5
+  # ! Incomplete eval_ratio depends on further condition masking by train_heldin_conditions
+train:
+  autoscale_batch_size: False
+  batch_size: 64
+  max_batch_size: 64
+  effective_batch_size: 64
+  patience: 50
+sweep_cfg: 'simple_ft' # No sweeping for now

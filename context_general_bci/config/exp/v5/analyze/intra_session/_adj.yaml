@@ -1,0 +1,11 @@
+# @package _global_
+
+dataset:
+  datasets:
+  # End
+  - pitt_intra_session_pitt_co_P4Home_52_9$
+  - pitt_intra_session_pitt_co_P4Home_53_10$
+  - pitt_intra_session_pitt_co_P4Home_54_9$
+  - pitt_intra_session_pitt_co_P4Home_55_10$
+  - pitt_intra_session_pitt_co_P4Home_56_10$
+  - pitt_intra_session_pitt_co_P4Home_58_12$

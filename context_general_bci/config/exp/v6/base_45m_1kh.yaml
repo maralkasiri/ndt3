@@ -1,0 +1,14 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _1kh
+  - _45m
+train:
+  batch_size: 32
+
+model:
+  task:
+    task_weights: [1.0, 10.0, 0., 0.] # Scale up spike loss to be comparable to neural loss
+
+notes: "Baseline 1kh including loss balance since that seems undeniably useful."

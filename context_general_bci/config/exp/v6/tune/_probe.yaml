@@ -1,0 +1,14 @@
+# @package _global_
+
+defaults:
+  - _joint
+
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_probe
+    task_modality_input:
+    - 0
+    - 0 # probe uses neural data
+  assert_batch_uniform: True # Needed for current implementation of pooling, since otherwise we can't differentiate which neuron tokens belong to which batch.

@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - ../_probe
+  - _50
+  - _base

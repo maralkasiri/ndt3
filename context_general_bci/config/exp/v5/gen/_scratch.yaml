@@ -1,0 +1,5 @@
+# @package _global_
+
+inherit_exp: ''
+inherit_tag: ''
+sweep_cfg: 'simple_scratch'

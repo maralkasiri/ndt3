@@ -1,0 +1,16 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _200h
+  - _45m
+
+dataset:
+  datasets:
+  - hatsopoulos.*
+  eval_datasets: []
+  exclude_datasets:
+  - Velma.* # CO eval
+train:
+  batch_size: 32
+  effective_batch_size: 1024

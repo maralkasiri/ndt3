@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - _earlisodco
+  - _center
+  - ../../_350m

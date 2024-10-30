@@ -1,0 +1,22 @@
+# @package _global_
+dataset:
+  datasets:
+  # 200h
+  - churchland.*
+  - gallego.*
+  - dyer_co.*
+  - delay.*
+  - miller.*
+  - flint.*
+  - Rouse_A.*
+  - Rouse_B.* # misses P/Q.
+  - perich.*
+
+  - pitt_broad.*
+
+  # Eval sets
+  - flint.*
+  - chase_Rocky.* # Included in Chase above
+
+  # New in V6
+  - batista-Earl-Iso.* # Sorted

@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - _100
+model:
+  lr_ramp_steps: 200
+  lr_decay_steps: 20000
+  dropout: 0.4
+sweep_cfg: ""
+inherit_tag: ""
+inherit_exp: ""

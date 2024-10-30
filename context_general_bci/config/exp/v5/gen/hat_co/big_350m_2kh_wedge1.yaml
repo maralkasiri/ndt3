@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - _base
+  - ../_co/_wedge_1
+  - ../../_350m

@@ -1,0 +1,6 @@
+# @package _global_
+
+defaults:
+  - _rtt
+  - ../_co16/_cycle_8
+  - _scratch

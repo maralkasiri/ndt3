@@ -1,0 +1,4 @@
+# @package _global_
+defaults:
+  - _25_350m
+  - ../../_350m

@@ -1,0 +1,13 @@
+# @package _global_
+
+defaults:
+  - _100
+
+model:
+  task:
+    decode_hl_gauss_sigma_bin_ratio: .75
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_infill # linear is MSE, this is classification
+
+inherit_exp: "v5/ablate"

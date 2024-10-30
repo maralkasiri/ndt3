@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - ../rtt_session_occ/_120d
+
+dataset:
+  shuffle_targets:
+  - calib_odoherty_calib_rtt-Indy-20170131_02.*
+  - eval_odoherty_eval_rtt-Indy-20170131_02.*
+
+  shuffle_level: 'channel'

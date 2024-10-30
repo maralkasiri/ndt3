@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - _earlisodco
+  - _center
+  - ../../_scratch
+
+sweep_cfg: 'simple_scratch'

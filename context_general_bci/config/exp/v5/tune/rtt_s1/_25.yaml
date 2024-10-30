@@ -1,0 +1,10 @@
+# @package _global_
+
+defaults:
+  - _rtt_s1
+dataset:
+  scale_ratio: 0.25
+train:
+  batch_size: 16 # 24G max
+  effective_batch_size: 16
+  max_batch_size: 16

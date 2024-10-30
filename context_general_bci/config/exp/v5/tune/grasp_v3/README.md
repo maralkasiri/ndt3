@@ -1,0 +1,1 @@
+Grasp trends in `grasp_new` use a 2s chop. The results were very unstable (0.2 R2) across random seeds, and severely skew averages. Defaulting to a 1s setting even if we have less data in total.

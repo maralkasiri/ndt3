@@ -1,0 +1,54 @@
+# @package _global_
+defaults:
+  - ../tune/_default
+model:
+  task:
+    metrics:
+    - Metric.kinematic_r2
+    constraint_mute: True
+    return_mute: True
+    reward_mute: True
+  # 4e-4 is taken from 45m_1kh+ tuning.
+  # Best to take from actual used model + occlusion exps, which are closest to this setting.
+  lr_init: 4e-4
+  lr_ramp_steps: 10 # Some small value
+  lr_decay_steps: 5000 # Steps expected on O(5-10k) for cursor-type tasks
+  lr_interval: step
+dataset:
+  max_tokens: 4096
+  # explicit_norm: './data/common/acausal_cursor_2click_norm.pt' # has cursor / click
+  explicit_norm: './data/common/acausal_cursor_click_norm.pt' # has cursor / click
+  # explicit_norm: './data/calib_pitt_calib_broad_norm.pt' # has cursor / click
+  pitt_co:
+    chop_size_ms: 1000
+    respect_trial_boundaries: False
+    # This varies depending on what you're training on. Elegant codepath needed.
+    explicit_labels: ['y', 'z', 'g1'] # refit brings in additional spurious dimensions # ! OK to train with these, apparently.
+    # explicit_labels: ['y', 'z', 'g1', 'g4', 'g5'] # refit brings in additional spurious dimensions # ! OK to train with these, apparently.
+    # g5, g6 is for 2 click
+    # explicit_labels: ['y', 'z'] # refit brings in additional spurious dimensions
+  data_keys:
+  - DataKey.spikes
+  - DataKey.bhvr_vel
+  - DataKey.bhvr_mask
+  sparse_rewards: False
+  sparse_constraints: False
+
+  datasets: []
+  exclude_datasets: []
+  eval_datasets: []
+
+  eval_split_continuous: True
+train:
+  epochs: 200
+  patience: 40
+  autoscale_batch_size: False
+  batch_size: 16
+  effective_batch_size: 0
+  early_stop_metric: val_kinematic_r2
+sweep_cfg: ''
+serial_run: True
+save_r2: True
+save_val_loss: False
+inherit_tag: ''
+cancel_if_run_exists: False

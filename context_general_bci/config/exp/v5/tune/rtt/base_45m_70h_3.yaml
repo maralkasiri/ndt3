@@ -1,0 +1,5 @@
+# @package _global_
+defaults:
+  - _3
+
+notes: "Loco Train test bleed, running anyway since the bled data is evaluation data (though some val may be seen in pretraining)"

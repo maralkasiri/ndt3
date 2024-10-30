@@ -1,0 +1,27 @@
+# @package _global_
+
+defaults:
+  - ../_default
+model:
+  neurons_per_token: 8
+  task:
+    delete_params_on_transfer:
+    - spike_infill:readin.weight
+    - spike_infill:out.0.weight
+    - spike_infill:out.0.bias
+dataset:
+  eval_split_continuous: True
+  mayo:
+    # chop_size_ms: 0 # Needed bc eye decoding / neural quality is inferior to motor BCI right now. Trializing makes decoding much more plausible
+    chop_size_ms: 1000
+  max_channels: 80
+  # Skipping explicit split for convenience
+  datasets:
+  - mayo.*
+  eval_datasets:
+  - mayo_Maestro-29 # Gold-standard, has 0.85 pos decoding, 0.3ish vel decoding
+  eval_ratio: 0.5
+  data_keys:
+  - DataKey.spikes
+  - DataKey.bhvr_vel
+  behavior_dim: 3

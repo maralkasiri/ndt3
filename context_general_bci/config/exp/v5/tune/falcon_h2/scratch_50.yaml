@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - _50
+  - ../../_scratch
+
+model:
+  lr_ramp_steps: 200
+  lr_decay_steps: 5000
+  hidden_size: 1024
+sweep_cfg: 'high_scratch_ss'

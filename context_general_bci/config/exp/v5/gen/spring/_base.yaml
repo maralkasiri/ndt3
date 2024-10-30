@@ -1,0 +1,24 @@
+# @package _global_
+
+defaults:
+  - ../_default
+model:
+  task:
+    metrics:
+    - Metric.kinematic_r2 # remove weighting so we don't need to specify behavior dim, bc we have multidim readout
+dataset:
+  datasets:
+  - mender.*
+  eval_datasets:
+  - mender.*
+  split_conditions: True
+  eval_ratio: 0.75
+  mender_fingerctx:
+    explicit_labels: ['x']
+    chop_size_ms: 2000 # Rough timescale of one trial
+
+# About 300 trials held-in
+train:
+  batch_size: 32
+  effective_batch_size: 32
+  max_batch_size: 32

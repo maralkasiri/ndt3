@@ -1,0 +1,19 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 4
+  explicit_norm: './data/calib_pitt_calib_broad_norm.pt'
+  pitt_co:
+    respect_trial_boundaries: True
+    chop_size_ms: 0
+  datasets:
+  - calib_pitt_trialized_broad.*
+  - eval_pitt_trialized_broad.*
+  eval_datasets:
+  - eval_pitt_trialized_broad.*
+
+  # Note: In a serendipitious exp -- no need to specifically crop the data, the dataloader random cropping is apparently sufficient.
+  max_length_ms: 5000 # Don't crop.
+  max_trial_length: 250 # Don't crop.

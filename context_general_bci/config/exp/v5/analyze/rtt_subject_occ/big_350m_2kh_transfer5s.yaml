@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - _base
+  - ../../_350m
+  - _0s
+
+sweep_cfg: 'full_ft'
+inherit_exp: 'v5/analyze/rtt_subject_occ'
+inherit_tag: 'big_350m_2kh_taptbase5s'
+inherit_best: True

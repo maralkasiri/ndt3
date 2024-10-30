@@ -1,0 +1,14 @@
+# @package _global_
+
+defaults:
+  - _100
+model:
+  lr_ramp_steps: 50
+  lr_decay_steps: 1500
+  lr_init: 3e-4
+  task:
+    metrics:
+      - Metric.kinematic_r2
+sweep_cfg: ""
+inherit_tag: ""
+inherit_exp: ""

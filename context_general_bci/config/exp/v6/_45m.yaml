@@ -1,0 +1,10 @@
+# @package _global_
+
+model:
+  transformer:
+    n_layers: 6
+    n_heads: 8
+  hidden_size: 1024
+  lr_init: 4e-4 # tick down from 4e-4. 2e-4 is not enough on 200h_v2, 1e-4 is stable for both 200h and 2kh.
+train:
+  batch_size: 48 # ~30G but 64 explodes

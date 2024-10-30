@@ -1,0 +1,11 @@
+# @package _global_
+
+defaults:
+  - _base
+  - ../../_scratch
+  - _0d
+
+sweep_cfg: 'full_ft'
+inherit_exp: 'v5/analyze/rtt_session_occ'
+inherit_tag: 'scratch_base_120d'
+inherit_best: True

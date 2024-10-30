@@ -1,0 +1,6 @@
+# @package _global_
+defaults:
+  - _10
+
+inherit_tag: base_45m_200h
+sweep_cfg: ft_exhaustive_control

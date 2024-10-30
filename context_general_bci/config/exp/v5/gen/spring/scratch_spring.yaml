@@ -1,0 +1,8 @@
+# @package _global_
+
+defaults:
+  - _base
+  - _spring
+  - ../../_scratch
+
+sweep_cfg: 'full_scratch'

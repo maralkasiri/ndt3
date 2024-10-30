@@ -1,0 +1,18 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 17
+  explicit_alias_to_session: true
+  augmentations: ['explicit_crop_time']
+  augment_crop_length_ms: 1000
+  falcon_m1:
+    respect_trial_boundaries: False
+    chop_size_ms: 4000
+    minmax: False
+  datasets:
+  - falcon_FALCONM1.*
+
+train:
+  patience: 250 # Need longer patience for getting close to SoTA.

@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _45m
+  - _min
+
+dataset:
+  datasets:
+  - flint.*
+  eval_datasets:
+  - flint.*
+train:
+  batch_size: 64
+  effective_batch_size: 128
+
+notes: "No data smoketest to quick iterate model size."

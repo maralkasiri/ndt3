@@ -1,0 +1,28 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 3
+  explicit_norm: './data/calib_odoherty_calib_rtt_norm.pt'
+  odoherty_rtt:
+    chop_size_ms: 1000
+
+  # ! We explicitly run a script that separates out test data now. On these datasets, we preserve first 60s for calibration. Everything else is eval.
+  datasets:
+  - odoherty_rtt.*
+  - calib_odoherty_calib_rtt.*
+  - eval_odoherty_eval_rtt.*
+  eval_datasets: # Taken from NDT2 ; https://github.com/joel99/context_general_bci/blob/main/context_general_bci/config/exp/scale_v3/session_unsort/tune/_default.yaml
+  - eval_odoherty_eval_rtt.*
+  eval_ratio: 1.0
+  # exclude_datasets: # explicitly removed already
+  # - odoherty_rtt-Indy-20160407_02 # ~816 trials
+  # - odoherty_rtt-Indy-20170131_02 #  814 trials
+  # - odoherty_rtt-Indy-20160627_01 # 3364s
+train:
+  batch_size: 64 # Fits on 40G.
+  # batch_size: 512 # Fits on 40G.
+  max_batch_size: 4096
+  effective_batch_size: 4096
+  patience: 50

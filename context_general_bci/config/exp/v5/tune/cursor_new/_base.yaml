@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - ../_default
+dataset:
+  behavior_dim: 4
+  explicit_norm: './data/calib_pitt_calib_broad_norm.pt'
+  pitt_co:
+    respect_trial_boundaries: False
+    chop_size_ms: 1000
+  datasets:
+  # OL Cursor + Click sets (from WH/NK R01 exps) - pulled by examining TestLog
+  # Protocol: Pre and possibly post-session helicopter rescue.
+  # Most sets here have test-log reported (train) R2 of ~0.6, and high click acc.
+  # In all, occurred over the span of about 40 days. 
+  # In broad data, there's other Cursor/Click flanking these datasets by ~1 week gap (does not preclude other motor exps even closer)
+  # Note there are other FBC/Ortho data from this day; we exclude them from any training and analysis
+  # Spaces indicate separate session
+  - calib_pitt_calib_broad.*
+  - eval_pitt_eval_broad.*
+  eval_datasets:
+  # OL Cursor sets (from WH/NK R01 exps)
+  - eval_pitt_eval_broad.*

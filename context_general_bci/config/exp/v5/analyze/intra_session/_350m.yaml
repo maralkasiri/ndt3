@@ -1,0 +1,6 @@
+# @package _global_
+
+train:
+  batch_size: 32
+  effective_batch_size: 32
+  max_batch_size: 32

@@ -1,0 +1,15 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _1kh
+  - _45m
+train:
+  batch_size: 32
+
+model:
+  task:
+    task_weights: [1.0, 10.0, 0., 0.] # Scale up spike loss to be comparable to neural loss
+    block_prefix_loss: True
+
+notes: "Vs. base_45m_1kh., addd prefix blocking."

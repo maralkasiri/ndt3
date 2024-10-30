@@ -1,0 +1,14 @@
+# @package _global_
+
+defaults:
+  - ../_default
+  - ../_200h
+  - ../_45m
+
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    metrics: []
+notes: "Just remove supervised task entirely in pretraining"
+save_r2: False # no metric

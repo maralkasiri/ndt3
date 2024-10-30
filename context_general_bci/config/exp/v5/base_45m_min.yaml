@@ -1,0 +1,25 @@
+# @package _global_
+
+defaults:
+  - _default
+  - _200h
+  - _45m
+
+dataset:
+  datasets:
+  # 200h
+  # - churchland.*
+  # - gallego.*
+  # - dyer_co.*
+  # - delay.*
+  # - miller.*
+  - flint.*
+  # - Rouse_A.*
+  # - Rouse_B.* # misses P/Q.
+  - chase_Rocky.*
+  # - chase_Nigel-2019.* # crop full set into about 50h, bumps 175 to 225.
+  # - perich.*
+train:
+  batch_size: 64
+  effective_batch_size: 256
+notes: "Minimal, eval dataset only, about 1h of training data in 2200 trials."

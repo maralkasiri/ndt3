@@ -1,0 +1,39 @@
+# @package _global_
+
+defaults:
+  - ../_default
+model:
+  task:
+    tasks:
+    - ModelTask.spike_infill
+    - ModelTask.kinematic_linear # MSE head
+    metrics:
+    - Metric.kinematic_r2
+dataset:
+  explicit_norm: './data/calib_odoherty_calib_rtt_norm.pt'
+  scale_ratio: 1.0
+
+  odoherty_rtt:
+    chop_size_ms: 1000 # Ignored, so doesn't matter
+    split_by_target: True
+    condition_bins: 16
+  split_conditions: True
+  
+  # These are the 3 evaluation sets in primary scaling. Be wary of data dup.
+  datasets:
+  - odoherty_rtt-Indy-20160407_02 # ~816 trials
+  - odoherty_rtt-Indy-20170131_02 #  814 trials
+  - odoherty_rtt-Indy-20160627_01 # 3364s
+  eval_datasets: # Taken from NDT2 ; https://github.com/joel99/context_general_bci/blob/main/context_general_bci/config/exp/scale_v3/session_unsort/tune/_default.yaml
+  - odoherty_rtt-Indy-20160407_02 # ~816 trials
+  - odoherty_rtt-Indy-20170131_02 #  814 trials
+  - odoherty_rtt-Indy-20160627_01 # 3364s
+  eval_ratio: 1.0
+
+train:
+  autoscale_batch_size: False
+  batch_size: 64
+  max_batch_size: 64
+  effective_batch_size: 64
+  patience: 50
+sweep_cfg: '' # No sweeping for now

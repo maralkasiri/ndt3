@@ -1,0 +1,8 @@
+# @package _global_
+
+dataset:
+  scale_ratio: 1.0
+train:
+  batch_size: 16
+  effective_batch_size: 64
+  max_batch_size: 64

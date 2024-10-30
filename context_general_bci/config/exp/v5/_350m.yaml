@@ -1,0 +1,7 @@
+# @package _global_
+# Arch related config
+model:
+  transformer:
+    n_layers: 12
+    n_heads: 16
+  hidden_size: 2048
