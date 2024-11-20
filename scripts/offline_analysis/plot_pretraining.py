@@ -87,12 +87,16 @@ variant_dfs = {
 #%%
 colormap['huge_700m_200h'] = colormap['base_45m_200h']
 colormap['huge_700m_2kh'] = colormap['base_45m_2kh']
-colormap['base_45m_rocky'] = 'red'
+colormap['base_45m_rocky'] = 'black'
+# colormap['base_45m_rocky'] = 'red'
 
+# TDOO replace colormap with scaling colormap
+from context_general_bci.plotting import SIZE_PALETTE, variant_volume_map
+colormap = {k: SIZE_PALETTE[variant_volume_map(k)] if variant_volume_map(k) in SIZE_PALETTE else v for k, v in colormap.items()}
 x_unit = 'epoch'
 # x_unit = 'trainer/global_step'
-# metric = 'kinematic_r2'
-metric = 'spike_infill_loss' # Essentially the same as loss
+metric = 'kinematic_r2'
+# metric = 'spike_infill_loss' # Essentially the same as loss
 # metric = 'kinematic_linear_loss'
 # metric = 'loss'
 
@@ -122,19 +126,19 @@ y_labels = {
 
 # One plot to illustrate the subject gap, another existence of model interference and model scaling on that
 preset = 'chasm'
-# preset = 'interference_scaling'
+preset = 'interference_scaling'
 # Curate visuals for kinematics. Story with neural is way confusing.
 if preset == 'chasm':
     dull_set = [
     ]
     bright_set = [
         'base_45m_min', # Necessary to convey
-        'base_45m_25h', # Not necessary to convey interference, we do it in next plot
-        'base_45m_70h',
-        # 'base_45m_rocky',
+        # 'base_45m_25h', # Not necessary to convey interference, we do it in next plot
+        # 'base_45m_70h',
+        'base_45m_rocky',
         'base_45m_200h',
-        'base_45m_1kh',
-        'base_45m_1kh_human', # Omit 2kh for now, save for separate plot
+        # 'base_45m_1kh',
+        # 'base_45m_1kh_human', # Omit 2kh for now, save for separate plot
         # 'big_350m_200h',
         # 'huge_700m_200h',
     ]
