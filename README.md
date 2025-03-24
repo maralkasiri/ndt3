@@ -88,3 +88,11 @@ If you encounter a `stdlib.h: No such file or directory` error during torch comp
 sudo apt-get install build-essential
 ```
 <!-- This is a GCC issue, I think, but GCC is available. -->
+
+### Error launching run.py
+```bash
+ assert config.model.transformer.max_trial_length >= config.dataset.max_trial_length, \
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: max_trial_length 250 in model must exceed that served by dataset 1500
+```
+This error occurs when Hydra fails to load in a config file because it does not recognize the path you provided. e.g. your `python run.py **+exp/path/to/config_dir=config_file**` is misformatted. If pointed to a file that does not exist, Hydra will simply no-op (as though you ran `python run.py`), which triggers this bad assert.
