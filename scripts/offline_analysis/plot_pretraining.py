@@ -389,3 +389,88 @@ plot_curves(all_flat_df, metric=metric, x_unit=x_unit, separate_split=separate_s
 # plt.suptitle(f'{metric}')
 # render hi res
 plt.savefig(f'scripts/figures/pretraining_{preset}.png', dpi=300)
+
+#%%
+from context_general_bci.plotting import SIZE_PALETTE, variant_volume_map
+# Create a simple bar plot comparing five specific variants
+
+# Get the maximum evaluation R² value for each specific variant
+def get_max_r2_by_variant(df):
+    # Filter for evaluation split only
+    eval_df = df[df['split'] == 'Evaluation']
+
+    # List of specific variants to compare (in desired order)
+    variants_to_compare = ["base_45m_min", "base_45m_200h", "base_45m_rocky", "base_45m_2kh", "big_350m_2kh"]
+
+    # For each variant, get the maximum R² value
+    results = []
+    for variant in variants_to_compare:
+        variant_df = eval_df[eval_df['variant_stem'] == variant]
+        if len(variant_df) == 0:
+            continue
+
+        # Get the max R² from the last 10% of training
+        max_epoch = variant_df['epoch'].max()
+        min_epoch_to_consider = 0.9 * max_epoch
+        converged_df = variant_df[variant_df['epoch'] >= min_epoch_to_consider]
+
+        if len(converged_df) > 0:
+            max_r2 = converged_df['kinematic_r2'].max()
+            results.append({'variant': variant, 'max_r2': max_r2})
+
+    return pd.DataFrame(results)
+
+# Get the maximum R² values
+max_r2_df = get_max_r2_by_variant(all_flat_df)
+
+# Create more readable labels for the variants
+max_r2_df['variant_label'] = max_r2_df['variant'].map({
+    'base_45m_min': '1.5 hr Test',
+    'base_45m_200h': '200 hr Other',
+    'base_45m_rocky': '45M 200h',
+    'base_45m_2kh': '45M 2kh',
+    'big_350m_2kh': '350M 2kh'
+})
+
+# Create the bar plot with increased size and more space between bars
+plt.figure(figsize=(14, 4))  # Wider figure to accommodate more space between bars
+ax = prep_plt(plt.gca(), size='medium')
+
+# Use the same colors as in the line plot but with alpha
+bar_colors = [colormap[variant] for variant in max_r2_df['variant']]
+
+# Instead of manually adjusting positions, use a proper spacing approach
+# Create custom x positions with wider spacing
+num_bars = len(max_r2_df)
+bar_width = 0.4
+spacing = 1.2  # Increased from 1.0 to 1.2 (20% more space between bars)
+positions = np.arange(num_bars) * spacing
+
+# Create the bar plot with custom positions
+bars = ax.bar(positions, max_r2_df['max_r2'],
+              color=bar_colors,
+              width=bar_width,
+              alpha=0.8)
+
+# Add value labels on top of each bar with larger font
+for bar in bars:
+    height = bar.get_height()
+    ax.text(bar.get_x() + bar.get_width()/2., height + 0.005,
+            f'{height:.3f}', ha='center', va='bottom', fontsize=24)
+
+# Set the x-tick positions to match our custom positions
+ax.set_xticks(positions)
+# But don't show the labels
+ax.set_xticklabels([])
+
+# Customize the plot
+ax.set_ylim(0.6, 0.8)  # Set y-axis limits similar to the line plot
+ax.set_ylabel('$R^2$', fontsize=32)
+ax.tick_params(axis='both', which='major', labelsize=28)  # Increase tick label size
+
+# Make sure all bars are visible by setting appropriate x limits
+ax.set_xlim(-0.5, positions[-1] + bar_width + 0.5)
+
+# Add more space between bars by adjusting the figure size
+plt.tight_layout()
+plt.savefig('scripts/figures/pretraining_variant_comparison_extended.png', dpi=300)

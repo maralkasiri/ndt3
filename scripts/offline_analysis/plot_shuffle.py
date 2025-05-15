@@ -73,9 +73,15 @@ df['daytime_min'] = df.apply(lambda row: day_to_time_map[eval_set][row.day] / 60
 
 
 target_df = df
+
 #%%
-# f = plt.figure(figsize=(3.2 if eval_set == 'rtt' else 2.75, 3.5), layout='constrained')
-f = plt.figure(figsize=(2.75, 3.5), layout='constrained')
+exp_subset = 'rtt'
+exp_subset = 'rtt_shuffle_token'
+exp_subset = 'rtt_shuffle_semitoken'
+exp_subset = 'rtt_shuffle_channel'
+
+f = plt.figure(figsize=(3.2 if exp_subset == 'rtt' else 2.75, 3.5), layout='constrained')
+
 ax = prep_plt(f.gca(), big=True)
 
 ax.yaxis.set_minor_locator(plt.MultipleLocator(0.1))
@@ -85,16 +91,17 @@ subset_variant = [
     'scratch',
     'base_45m_200h',
     'big_350m_2kh',
-    'scratch_transfer',
-    'base_45m_200h_transfer',
-    'big_350m_2kh_transfer',
+
+    'scratch_transfer', # TAPT
+    'base_45m_200h_transfer', # TAPT
+    'big_350m_2kh_transfer', # TAPT
 ]
+
+show_style = False # To reduce density in main text
+show_style = True
+
 y = 'eval_r2'
 
-# exp_subset = 'rtt'
-exp_subset = 'rtt_shuffle_token'
-exp_subset = 'rtt_shuffle_semitoken'
-# exp_subset = 'rtt_shuffle_channel'
 
 SHOW_Y = exp_subset == 'rtt'
 
@@ -123,6 +130,8 @@ subset_df = target_df[target_df.variant_stem.isin(subset_variant)]
 
 subset_df = subset_df[subset_df[x] > 0] # annotate as horizontal lines to connect panels with `plot_oclcusion`
 
+
+
 def get_mean_perf(df):
     return df.groupby(['variant_stem', 'eval_set', 'day', 'daytime_hr', 'experiment_set', ]).agg({
         'eval_r2': 'mean',   # Take mean of eval_r2 across seeds
@@ -140,8 +149,8 @@ sns.lineplot(
         y=y,
         hue='variant_stem',
         palette=colormap,
-        style='variant_stem',
-        dashes=style_map,
+        style='variant_stem' if show_style else None,
+        dashes=style_map if show_style else None,
         ax=ax,
         alpha=0.8, # Lighten it up
         err_kws={'alpha': 0.05},  # This makes the error band lighter
@@ -164,27 +173,28 @@ sns.scatterplot(
 )
 
 # Scatter subject on top
-mean_subject_df = get_mean_perf(subject_df)
-sns.lineplot(
-        data=subject_df,
+if exp_subset == 'rtt_shuffle_semitoken' and show_style: # and verbose
+    mean_subject_df = get_mean_perf(subject_df)
+    sns.lineplot(
+            data=subject_df,
+            x=x,
+            y=y,
+            color='red',
+            ax=ax,
+            linestyle='--',
+            alpha=0.8, # Lighten it up
+            err_kws={'alpha': 0.05},  # This makes the error band lighter
+            # errorbar='sd',
+        )
+    sns.scatterplot(
+        data=mean_subject_df,
         x=x,
         y=y,
         color='red',
-        ax=ax,
-        linestyle='--',
-        alpha=0.8, # Lighten it up
-        err_kws={'alpha': 0.05},  # This makes the error band lighter
-        # errorbar='sd',
+        marker='X',
+        s=MARKER_SIZE,
+        # markers=marker_dict,
     )
-sns.scatterplot(
-    data=mean_subject_df,
-    x=x,
-    y=y,
-    color='red',
-    marker='X',
-    s=MARKER_SIZE,
-    # markers=marker_dict,
-)
 
 # ax.set_xscale('log')
 # ax.set_xticks([])
@@ -220,6 +230,7 @@ from matplotlib.ticker import SymmetricalLogLocator
 
 for variant in ['scratch', 'base_45m_200h', 'big_350m_2kh']:
     perf = target_df[(target_df[x] == 0) & (target_df['variant_stem'] == variant)][y].values[0]
+    print(perf)
     ax.axhline(perf, linestyle=':', color=colormap[variant], alpha=0.8)
 
 # if eval_set == 'rtt':
@@ -234,7 +245,191 @@ for variant in ['scratch', 'base_45m_200h', 'big_350m_2kh']:
 # Figure out overall layout / fontsize
 # Insert variant_stem labels at start of plot
 
-# %%
+
+#%%
+# New version of these plots, that are just bars, instead of line plots, for simplicity.
+
+# Load subject df, from a different exp
+eval_set = 'rtt_subject'
+subject_df = pd.read_csv(f'data/analysis_metrics/{eval_set}_occ.csv')
+
+def stem_map(variant):
+    stem = '_'.join(variant.split('-')[0].split('_')[:-1])
+    if 'transfer' in variant and 'transfer' not in stem:
+        stem += '_transfer'
+    return stem
+
+def day_of(variant):
+    day = variant.split('-')[0].split('_')[-1][:-1] # trim "d" from "0d"
+    if 'transfer' in day:
+        day = day[len('transfer'):]
+    return int(day)
+
+subject_df['variant_stem'] = subject_df.apply(lambda row: stem_map(row.variant), axis=1)
+subject_df['subj'] = subject_df.apply(lambda row: day_of(row.variant), axis=1)
+# Amount of time (s) in Loco, new subject data. -60 since that's the Indy calib time
+subj_session_to_time_map = {
+    0: 0,
+    2: 4245 - 60,
+    5: 11248 - 60,
+    10: 20325 - 60,
+}
+subject_df['subj_hr'] = subject_df.apply(lambda row: subj_session_to_time_map[row.subj] / 60 / 60, axis=1)
+subject_df['subj_min'] = subject_df.apply(lambda row: subj_session_to_time_map[row.subj] / 60, axis=1)
+
+# Append "subject" to variant_stem to distinguish subject data from session data
+subject_df['variant_stem'] = subject_df['variant_stem'] + '_subject'
+
+
+
+relabel_map = {
+    'scratch': 'scratch',
+    'big_350m_2kh': '350M',
+}
+
+# print(session_df[(session_df['variant_stem'] == 'big_350m_2kh_transfer') & (session_df['eval_set'] == 'rtt') & (session_df['day'] == 120)])
+# print(session_df['variant_stem'].unique())
+
+subject_scratch_transfer = subject_df[(subject_df['variant_stem'] == 'scratch_transfer_subject') & (subject_df['eval_set'] == 'rtt_subject') & (subject_df['subj'] == 10)]
+# scratch transfer about 2 hours of data
+
+
+# Slight caveat - there's like ~0.03 R2 difference between shuffle token shuffle channel and baseline scratch conditions, unclear why.
+print(target_df.columns)
+
+new_df = pd.concat([
+    target_df[(target_df['variant_stem'] == 'scratch') & (target_df[x] == 0) & (target_df['eval_set'] == 'rtt')],
+    target_df[(target_df['variant_stem'] == 'big_350m_2kh') & (target_df[x] == 0) & (target_df['eval_set'] == 'rtt')],
+
+    session_df[(session_df['variant_stem'] == 'scratch_transfer') & (session_df['eval_set'] == 'rtt') & (session_df['day'] == 120)],
+    session_df[(session_df['variant_stem'] == 'big_350m_2kh_transfer') & (session_df['eval_set'] == 'rtt') & (session_df['day'] == 120)],
+
+    subject_df[(subject_df['variant_stem'] == 'scratch_transfer_subject') & (subject_df['eval_set'] == 'rtt_subject') & (subject_df['subj'] == 10)],
+    subject_df[(subject_df['variant_stem'] == 'big_350m_2kh_transfer_subject') & (subject_df['eval_set'] == 'rtt_subject') & (subject_df['subj'] == 10)],
+
+    target_df[(target_df['variant_stem'] == 'scratch') & (target_df['eval_set'] == 'rtt_shuffle_token') & (target_df['day'] == 120)],
+    target_df[(target_df['variant_stem'] == 'big_350m_2kh') & (target_df['eval_set'] == 'rtt_shuffle_token') & (target_df['day'] == 120)],
+
+    target_df[(target_df['variant_stem'] == 'scratch') & (target_df['eval_set'] == 'rtt_shuffle_semitoken') & (target_df['day'] == 120)],
+    target_df[(target_df['variant_stem'] == 'big_350m_2kh') & (target_df['eval_set'] == 'rtt_shuffle_semitoken') & (target_df['day'] == 120)],
+
+    target_df[(target_df['variant_stem'] == 'scratch') & (target_df['eval_set'] == 'rtt_shuffle_channel') & (target_df['day'] == 120)],
+    target_df[(target_df['variant_stem'] == 'big_350m_2kh') & (target_df['eval_set'] == 'rtt_shuffle_channel') & (target_df['day'] == 120)],
+])
+
+# Add joint str for variant_stem and eval_set
+new_df['variant_stem_eval_set'] = new_df['variant_stem'] + '_' + new_df['eval_set']
+
+variant_stem_relabel = {
+    'scratch': 'Scratch',
+    'big_350m_2kh': 'Pretrain',
+    'scratch_transfer': 'Session',
+    'big_350m_2kh_transfer': 'Pretrain + Session',
+    'scratch_transfer_subject': 'Subject',
+    'big_350m_2kh_transfer_subject': 'Pretrain + Subject',
+}
+
+order = [
+    'scratch_rtt',
+    'big_350m_2kh_rtt',
+
+    'scratch_transfer_rtt',
+    'big_350m_2kh_transfer_rtt',
+
+    'scratch_transfer_subject_rtt_subject',
+    'big_350m_2kh_transfer_subject_rtt_subject',
+
+    'scratch_rtt_shuffle_channel',
+    'big_350m_2kh_rtt_shuffle_channel',
+
+    'scratch_rtt_shuffle_semitoken',
+    'big_350m_2kh_rtt_shuffle_semitoken',
+
+    'scratch_rtt_shuffle_token',
+    'big_350m_2kh_rtt_shuffle_token',
+]
+# order = [variant_stem_relabel[v] for v in order]
+# new_df['variant_stem_label'] = new_df['variant_stem'].map(variant_stem_relabel)
+# print(new_df['variant_stem_eval_set'].unique())
+print(new_df['eval_set'].unique())
+
+
+def eval_set_relabel(row):
+    if row['eval_set'] == 'rtt':
+        if row['variant_stem'] in ['scratch_transfer', 'big_350m_2kh_transfer']:
+            return 'rtt_session'
+        else:
+            return 'rtt'
+    else:
+        print(row['eval_set'])
+        return row['eval_set']
+
+new_df['eval_set_crop'] = new_df.apply(eval_set_relabel, axis=1)
+new_df['variant_stem_crop'] = new_df['variant_stem'].str.replace('_transfer_subject', '').str.replace('_transfer', '')
+new_df.reset_index(drop=True, inplace=True)
+
+order_crop = [
+    'rtt',
+    'rtt_session', # ? something is wrong with positioning...
+    'rtt_subject',
+    'rtt_shuffle_channel',
+    'rtt_shuffle_semitoken',
+    'rtt_shuffle_token',
+]
+
+# f = plt.figure(figsize=(10.5, 2.2), layout='constrained')
+# ax = prep_plt(f.gca(), big=True)
+
+
+# print(new_df[(new_df['eval_set_crop'] == 'rtt') & (new_df['variant_stem_crop'] == 'scratch')][['eval_r2', 'id']])
+# print(
+
+g = sns.catplot(
+    data=new_df,
+    kind='bar',
+    x='eval_set_crop',
+    y=y,
+    palette=colormap,
+    hue='variant_stem_crop',
+    order=order_crop,
+    errorbar='sd',
+    legend=False,
+    width=0.5,
+    height=2.8,
+    aspect=4.2,
+)
+
+
+# Get inner ax
+ax = g.axes.flat[0]  # Get the first (and only) axes from the grid
+
+ref_high = new_df[(new_df['eval_set_crop'] == 'rtt') & (new_df['variant_stem_crop'] == 'big_350m_2kh')][['eval_r2', 'id']]
+y_high = ref_high['eval_r2'].mean()
+ref_low = new_df[(new_df['eval_set_crop'] == 'rtt') & (new_df['variant_stem_crop'] == 'scratch')][['eval_r2', 'id']]
+y_low = ref_low['eval_r2'].mean()
+
+
+ax.axhline(y_high, linestyle=':', color='black', alpha=0.8)
+ax.axhline(y_low, linestyle=':', color='black', alpha=0.8)
+
+ax = prep_plt(ax, big=True)
+ax.set_xlabel('')
+ax.set_ylabel('')
+ax.set_yticks([0., 0.2, 0.4, 0.6])
+
+
+# Remove xtick labels
+# Remove xtick labels entirely
+ax.set_xticklabels([])
+ax.set_xticks([])
+
+ax.set_xlabel('')
+ax.text(-0.02, 1.0, '$R^2$', ha='center', va='center', transform=ax.transAxes, fontsize=24)
+ax.set_ylabel('')
+ax.set_yticks([0., 0.3, 0.5, 0.7])
+ax.set_ylim(0.3, 0.8)
+
+
 
 #%%
 # Make an empty plot with annotation, $R^2$
