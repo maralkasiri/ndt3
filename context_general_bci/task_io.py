@@ -389,16 +389,20 @@ class ConstraintPipeline(ContextPipeline):
             padding,
         )
 
+
 # Tokenizer for fast path
 class FastTokenizer:
     def __init__(
             self,
             constraint_dims: torch.Tensor | None,
-            spike_readin: nn.Embedding,
+            spike_readin: nn.Embedding | None,
             return_enc: nn.Embedding | None,
             reward_enc: nn.Embedding | None,
             constraint_mute: bool = False,
             constraint_support_mute: bool = False,
+            return_mute: bool = False,
+            reward_mute: bool = False,
+            embedding_dim: int = 0,
         ):
         self.constraint_dims = constraint_dims
         self.readin = spike_readin
@@ -406,6 +410,9 @@ class FastTokenizer:
         self.reward_enc = reward_enc
         self.constraint_mute = constraint_mute
         self.constraint_support_mute = constraint_support_mute
+        self.return_mute = return_mute
+        self.reward_mute = reward_mute
+        self.embedding_dim = embedding_dim
 
     def encode_constraint(self, constraint: torch.Tensor) -> torch.Tensor:
         if self.constraint_dims is None:
@@ -423,17 +430,38 @@ class FastTokenizer:
             return constraint_in @ self.constraint_dims[:1]
         return einsum(constraint, self.constraint_dims, 'b t constraint, constraint h -> b t h')
 
-    def encode_spikes(self, spikes: torch.Tensor) -> torch.Tensor:
+    def encode_spikes(self, spikes: torch.Tensor) -> torch.Tensor | None:
+        if self.readin is None:
+            return None
         state_in = torch.as_tensor(spikes, dtype=int)
         state_in = rearrange(state_in, 'b t c h -> b t (c h)')
         state_in = self.readin(state_in.clip(max=self.readin.num_embeddings - 1))
         state_in = state_in.flatten(-2, -1)
         return state_in
 
-    def encode_return(self, task_return: torch.Tensor, task_reward: torch.Tensor) -> torch.Tensor | None:
-        if self.return_enc is None or self.reward_enc is None:
+    def encode_return(self, task_return: torch.Tensor) -> torch.Tensor | None:
+        if self.return_enc is None:
             return None
-        return self.return_enc(task_return) + self.reward_enc(task_reward)
+        if self.return_mute:
+            return torch.zeros((
+                task_return.size(0),
+                task_return.size(1),
+                self.embedding_dim
+            ), device=task_return.device, dtype=torch.float)
+            # ), device=task_return.device, dtype=task_return.dtype)
+        return self.return_enc(task_return)
+
+    def encode_reward(self, task_reward: torch.Tensor) -> torch.Tensor | None:
+        if self.reward_enc is None:
+            return None
+        if self.reward_mute:
+            return torch.zeros((
+                task_reward.size(0),
+                task_reward.size(1),
+                self.embedding_dim
+            ), device=task_reward.device, dtype=torch.float)
+            # ), device=task_reward.device, dtype=task_reward.dtype)
+        return self.reward_enc(task_reward)
 
     def reset_cache(self):
         pass
@@ -443,6 +471,7 @@ class FastTokenizer:
 
     def push_cache(self, neural: torch.Tensor, constraint: torch.Tensor, return_reward: torch.Tensor, behavior: torch.Tensor):
         pass
+
 
 class DataPipeline(TaskPipeline):
     def get_masks(

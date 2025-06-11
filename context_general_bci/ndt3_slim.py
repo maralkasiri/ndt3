@@ -31,12 +31,6 @@ from context_general_bci.task_io import (
     CovariateLinear,
     ReturnInfill,
     ReturnContext,
-    RewardContext,
-    VFunction,
-    VFunctionDummyEnc,
-    QFunction,
-    QFunctionDummyEnc,
-    QFunctionSlim,
     simplify_logits_to_prediction,
 )
 from context_general_bci.model import BrainBertInterface, TASK_MODALITY_MAP
@@ -85,8 +79,6 @@ class NDT3(pl.LightningModule):
             bhvr_task: CovariateInfill | CovariateLinear,
             neural_task: SpikeBase | None,
             return_task: ReturnInfill | ReturnContext | None,
-            reward_task: RewardContext | None,
-            reward_quantizer: QuantizeSimple | None,
             start_of_sentence: torch.Tensor,
             # config
             max_behavior_dim: int, # From data_attrs
@@ -98,27 +90,18 @@ class NDT3(pl.LightningModule):
             use_tokenizer_cache: bool = True,
             use_kv_cache: bool = True,
             return_conditioned: bool = True,
-            v_function: nn.Module | None = None, # v-function and q-function shouldn't be forward-ed online, but can use them for visualizing model belief state
-            q_function: QFunction | None = None,
-            q_backbone: StreamlinedTransformer | None = None,
+            v_function: nn.Module | None = None,
             bhvr_modality: int = 1,
             return_modality: int = 3, # -1 if no return task
-            q_modality: int = 5,
-            split_return_reward: bool = False,
             max_batch_size: int = 1,
-            reward_return_pad_value: float = 0.,
         ):
         super().__init__()
         self.backbone = backbone
         self.tokenizer = tokenizer
         self.bhvr_quantizer = bhvr_quantizer
-        self.reward_quantizer = reward_quantizer
         self.neurons_per_token = neurons_per_token
         self.max_channel_count = max_channel_count
         self.start_of_sentence = start_of_sentence
-        self.neural_task = neural_task
-        self.split_return_reward = split_return_reward
-        self.reward_return_pad_value = reward_return_pad_value
         dimensionalities = [
             get_modality_dimensonality(
                 v,
@@ -131,8 +114,6 @@ class NDT3(pl.LightningModule):
         self.max_spatial_position = max_spatial_position
         self.return_conditioned = return_conditioned
         self.v_function = v_function
-        self.q_function = QFunctionSlim(q_function) if q_function is not None else None
-        self.q_backbone = q_backbone
         # self.ASSERT_MUTED_ACTION_OVERRIDE_DEBUG = True
         # if self.ASSERT_MUTED_ACTION_OVERRIDE_DEBUG:
             # self.q_backbone = backbone # ! DEBUGGING! SEEING IF UNMUTED ACTIONS ARE RUINING Q-VALUE ESTIMATION
@@ -162,22 +143,16 @@ class NDT3(pl.LightningModule):
         # self.tokenizer.encode_spikes = torch.compile(self.tokenizer.encode_spikes, fullgraph=True)
         self.bhvr_in = bhvr_task.inp
         self.bhvr_out = bhvr_task.out
-        self.bhvr_tanh = bhvr_task.tanh_limit
         if not self.return_conditioned and self.v_function is None:
             self.v_out_name = ""
             self.v_predict = None
         else:
             self.v_out_name = Output.return_logits if return_conditioned else Output.state_value
-            self.v_predict = return_task.out if return_conditioned else self.v_function.out
+            self.v_predict = self.return_task.out if return_conditioned else self.v_function
             # self.v_predict = None # ! Temp. Just testing if behavior prediction is alright.
         self.bhvr_modality = bhvr_modality
         self.return_modality = return_modality
-        self.q_modality = q_modality
         self.eval()
-
-    @property
-    def is_reward_binary(self):
-        return self.reward_quantizer is None
 
     def set_streaming_timestep_limit(self, limit: int):
         if self.inference_params is not None:
@@ -191,10 +166,7 @@ class NDT3(pl.LightningModule):
 
     def bhvr_predict(self, backbone_features: torch.Tensor, temperature: float = 0.) -> torch.Tensor:
         if self.bhvr_quantizer is None:
-            pred = self.bhvr_out(backbone_features)
-            if self.bhvr_tanh > 0:
-                pred = torch.tanh(pred) * self.bhvr_tanh
-            return pred
+            return self.bhvr_out(backbone_features)
         class_feats = self.bhvr_out(backbone_features)
         return simplify_logits_to_prediction(self.bhvr_quantizer.dequantize, class_feats, temperature=temperature)
 
@@ -276,8 +248,6 @@ class NDT3(pl.LightningModule):
             return_task_name = candidate_return_tasks[0]
 
         candidate_reward_tasks = [t for t in [
-            ModelTask.reward_context.name,
-            ModelTask.q_function.name,
         ] if t in training_shell.task_pipelines]
         if len(candidate_reward_tasks) > 1:
             logger.warning(f"Multiple reward tasks found: {candidate_reward_tasks}. Using {candidate_reward_tasks[0]}")
@@ -296,19 +266,7 @@ class NDT3(pl.LightningModule):
                 return_enc = VFunctionDummyEnc(training_shell.backbone.out_size)
             else:
                 return_enc = None
-        if reward_task is not None:
-            if reward_task_name == ModelTask.q_function.name:
-                reward_enc = QFunctionDummyEnc(training_shell.backbone.out_size)
-            else:
-                reward_enc = reward_task.reward_enc
-        else:
-            if training_shell.cfg.task.return_task_no_reward and return_task is not None:
-                if hasattr(return_task, 'reward_enc'):
-                    reward_enc = return_task.reward_enc
-                else:
-                    reward_enc = None
-            else:
-                reward_enc = None
+        reward_enc = return_task.reward_enc if return_task is not None else None
         if ModelTask.kinematic_infill.name not in training_shell.task_pipelines:
             kin_task = ModelTask.kinematic_linear
             bhvr_task: CovariateLinear = training_shell.task_pipelines[ModelTask.kinematic_linear.name]
@@ -365,10 +323,6 @@ class NDT3(pl.LightningModule):
             return_conditioned=return_conditioned,
             bhvr_modality=bhvr_modality,
             return_modality=return_modality,
-            q_modality=q_modality,
-            split_return_reward=training_shell.cfg.task.return_task_no_reward,
-            reward_return_pad_value=training_shell.data_attrs.reward_return_pad_value,
-            q_backbone=training_shell.q_backbone,
             **kwargs
         )
 
@@ -621,40 +575,6 @@ def predict_prefill(
         # if model.reward_return_pad_value == 0:
             # breakpoint() # May need to squeeze or remove dimension?
         out[model.v_out_name] = v_pred
-    if model.q_function is not None: # This is mostly for diagnostics.
-        # print(bhvr_vel)
-        # print(pipeline_context[:,-14:-12].sum(dim=-1))
-        # Since Q(s, a) for the most immediate timestep would require a second pass through backbone,
-        # We'll report the Q for the prior timestep (where a is available, in agents using autoregress bhvr)
-        if model.q_backbone is not None: #  or model.ASSERT_MUTED_ACTION_OVERRIDE_DEBUG:
-            is_kin_mask = (modalities == model.bhvr_modality).roll(1, dims=1) # Is kinematic input - one after is kin target
-            is_kin_mask[:, 0] = False # First token is always valid (not kinematic input), it's SOS
-            pipeline_context_muted = pipeline_context.clone()
-            pipeline_context_muted[is_kin_mask] = 0
-            outputs_q = model.q_backbone(
-                pipeline_context_muted,
-                times=times,
-                positions=space,
-            ) # KV definitely not supported
-            q_query = outputs_q[modalities == model.q_modality][-2:]
-        else:
-            q_query = outputs[modalities == model.q_modality][-2:]
-        # Up to agent to pull out the specific timestep it wants to use (likely the older one, newer one is Q(s, 0))
-        if model.q_function.arch in ['cross-attn', 'concat', 'concat-full']:
-            # Need actions...
-            is_not_timestep_zero = covariate_time.max() > 0
-            second_to_last_time = covariate_time.max() - 1 if is_not_timestep_zero else 0
-            second_to_last_action = rearrange(bhvr_vel[covariate_time == second_to_last_time], 'h 1 -> 1 h 1')
-            q_query = q_query[:1] if is_not_timestep_zero else q_query
-            q_pred = model.q_function(q_query, second_to_last_action)
-            if is_not_timestep_zero:
-                q_pred = torch.cat([q_pred, q_pred], dim=0) # Just pad it for compatibility with standard API
-            # breakpoint()
-            # breakpoint()
-        else:
-            q_pred = model.q_function(q_query)
-        out[Output.q_value] = q_pred
-        # print(f'Q: {q_pred.shape}, {q_pred[0]}')
     return out
 
 @torch.inference_mode()
