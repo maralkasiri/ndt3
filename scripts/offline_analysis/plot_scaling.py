@@ -83,7 +83,7 @@ df_paths = [
     Path("./data/eval_metrics/crc_rtt_eval_ndt3.csv"),
     Path("./data/eval_metrics/crc_falcon_h1_eval_ndt3.csv"),
     Path("./data/eval_metrics/crc_bimanual_eval_ndt3.csv"),
-    
+
     Path("./data/eval_metrics/crc_neural_cst_eval_ndt3.csv"),
 
     # Path("./data/eval_metrics/nid_cursor_eval_ndt3.csv"),
@@ -137,6 +137,8 @@ else:
     ndt2_eval_df = pd.DataFrame()
 
 def stem_map(variant):
+    if 'poyo' in variant:
+        return 'poyo'
     if 'scratch' in variant:
         return 'NDT3 mse'
     # if 'scratch' in variant:
@@ -144,7 +146,9 @@ def stem_map(variant):
     return '_'.join(variant.split('-')[0].split('_')[:-1])
 
 eval_df['variant_stem'] = eval_df.apply(lambda row: stem_map(row.variant), axis=1)
-ndt2_eval_df['variant_stem'] = 'NDT2 Expert'
+# ndt2_eval_df['variant_stem'] = 'NDT2 Expert'
+ndt2_eval_df['variant_stem'] = ndt2_eval_df.apply(lambda row: 'NDT2 PT' if 'pt' in row.variant else 'NDT2 Expert', axis=1)
+
 eval_df = pd.concat([eval_df, ndt2_eval_df, ridge_df])
 if 'index' in eval_df.columns:
     eval_df.drop(columns=['index'], inplace=True)
@@ -208,7 +212,7 @@ subset_variants = [
     # 'base_45m_2kh',
     # 'big_350m_200h',
     # 'big_350m_2kh',
-    
+
     'base_45m_min_neural_joint',
     'base_45m_25h_neural_joint',
     'base_45m_70h_neural_joint',
@@ -228,6 +232,8 @@ COLOR_STRATEGY = "global"
 COLOR_STRATEGY = "datasize"
 SHOW_CBAR = False
 # SHOW_CBAR = True
+SHOW_CBAR = True and COLOR_STRATEGY == "datasize"
+
 
 RESTRICT_1KH = []
 # If provided, use this specific 1kh variant
@@ -252,7 +258,7 @@ if not FOCUS_ABLATION:
 def marker_style_map(variant_stem):
     if '350m' in variant_stem:
         return 'P'
-    if variant_stem in ['NDT2 Expert', 'NDT3 Expert', 'NDT3 mse', 'wf', 'ole']:
+    if variant_stem in ['NDT2 Expert', 'NDT3 Expert', 'NDT3 mse', 'wf', 'ole', 'poyo']:
         return 'X'
     else:
         return 'o'
@@ -270,6 +276,8 @@ eval_df['is_mse'] = eval_df.apply(lambda row: 'smth' not in row.variant_stem or 
 # eval_df['is_mse'] = eval_df.apply(lambda row: 'mse' in row.variant_stem or 'NDT2 Expert' in row.variant_stem, axis=1)
 def linestyle_map(row):
     # Used to distinguish model "category" e.g. not pt, 45M or 350M
+    if row.variant_stem in ['NDT2 PT']:
+        return 'a'
     if not row.is_pt:
         return 'b'
     elif '45m' in row.variant_stem:
@@ -490,10 +498,30 @@ def format_ax(df,
             fmt_tune_str = f'Session: {tune_session[0]}\nTask: {task_session}'
             # fmt_tune_str = f'Session: {tune_session[0]}'
             fmt_height = 0.01
+            fontsize = 20
+            x_offset = 0.0
+            ha = 'right'
         elif SHOW_SESSION_LABEL == 2:
             fmt_tune_str = f'{tune_session[0]}\n' + r'$\times$' + f'{tune_session[1]} sess'
             fmt_height = 0.01
-        ax.text(1.0, fmt_height, fmt_tune_str, ha='right', va='bottom', transform=ax.transAxes, fontsize=20)
+            fontsize = 20
+            x_offset = 0.0
+            ha = 'right'
+        elif SHOW_SESSION_LABEL == 3:
+            fmt_tune_str = f'{task_session}'
+            fontsize = 20
+            ha = 'center'
+            x_offset = -.1
+            # fmt_tune_str = f'Task: {task_session}'
+            fmt_height = 0.01
+        else:
+            fmt_tune_str = ''
+            fontsize = 20
+            fmt_height = 0.01
+            ha = 'right'
+            x_offset = 0.0
+        ax.text(1.0 + x_offset, fmt_height, fmt_tune_str, ha=ha, va='bottom', transform=ax.transAxes, fontsize=fontsize)
+
 
     # ax.yaxis.set_minor_formatter(plt.ScalarFormatter())
     ax.yaxis.set_minor_locator(AutoMinorLocator(2))
@@ -540,7 +568,8 @@ if COMPACT:
     HOR_LONG = 7
 else:
     HOR_SHORT = 3.5 + 1.1 * SHOW_CBAR
-    HOR_LONG = (7. if target_eval_set in ['falcon_m2', 'falcon_m2'] else 6.) + 1.1 * SHOW_CBAR
+    HOR_LONG = (7. if target_eval_set in ['falcon_m2', 'falcon_m2'] and subset_scales == [0.03, 0.1, 0.25, 0.5, 1.0] else 6.) + 1.1 * SHOW_CBAR
+
 from matplotlib.gridspec import GridSpec
 if target_eval_set in ['falcon_m1', 'falcon_h1', 'falcon_m2']: # m2 excluded to fit size limits
 # if target_eval_set in ['falcon_m1', 'falcon_h1']: # m2 excluded to fit size limits

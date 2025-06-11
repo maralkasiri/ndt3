@@ -5,7 +5,8 @@ defaults:
 dataset:
   behavior_dim: 3
   explicit_alias_to_session: true
-  augmentations: ['explicit_crop_time']
+  rand_augmentations: ['explicit_crop_time']
+  # Need rand_augmentations, not augmentations - name change
   augment_crop_length_ms: 1000
   falcon_m2:
     respect_trial_boundaries: False

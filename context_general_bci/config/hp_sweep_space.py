@@ -5,7 +5,79 @@
 # Formatted according to expectations in `halton.py`
 
 sweep_space = {
-
+    "linear_scratch": {
+        "model.lr_init": {
+            "feasible_points": [3e-5, 1e-4, 3e-4, 9e-4, 3e-3, 1e-2]
+        }
+    },
+    "linear": { # Linear full
+        "model.explicit_alpha": {
+            'feasible_points': [1e-5, 1e-4, 1e-3, 1e-2] # , 1e-1,  1.0 , 1e1, 1e2, 1e3] Stronger excessive
+        },
+        "model.mlp_steps": {
+            'feasible_points': [10, 20, 30, 40, 50] # High step prob won't optimize well given our chopped data flow
+        },
+    },
+    "linear_scratch_lbfgs": {
+        "model.mlp_steps": {
+            'feasible_points': [10, 20, 30, 40, 50] # High step prob won't optimize well given our implementation
+        },
+        "model.lr_init": { # LBFGS
+            'feasible_points': [3e-3, 1e-2], # Higher regime than NDT
+        },
+    },
+    # Exhaustive sweep for IQL on joystick data... understanding the shape of the space
+    # https://chatgpt.com/share/68069816-21c4-800b-bbe5-4b07c8b15dac
+    "iql_base": {
+        "model.lr_init": {
+            'feasible_points': [3e-5, 1e-4, 4e-4, 1e-3, 3e-3]
+        },
+        "model.lr_ramp_steps": {
+            'feasible_points': [10, 100, 1000]
+        },
+        'model.rl.q_polyak_alpha': {
+            'feasible_points': [0.001, 0.005, 0.01]
+        },
+        'model.rl.expectile_tau': {
+            'feasible_points': [0.6, 0.75, 0.9]
+        },
+        # We do not sweep update rates on different losses because we are using a single optimizer. (i.e. not implemented)
+    },
+    "lora_ft": {
+        "model.lr_init": {
+            'feasible_points': [4e-4, 1e-3, 4e-3]
+        },
+        "train.lora_rank": {
+            'feasible_points': [8, 16,]
+        },
+    },
+    "advantage_clip": {
+        "model.task.advantage_clip": {
+            'feasible_points': [1.0, 2.0, 3.0, 4.0]
+        },
+    },
+    "polyak_alpha": {
+        "model.rl.q_polyak_alpha": {
+            'feasible_points': [0.01, 0.05, 0.1, 0.25]
+        },
+        "model.lr_init": {
+            'feasible_points': [3e-5, 1e-4, 4e-4]
+        },
+    },
+    "awr_beta": {
+        "model.task.behavior_weight_return_exp": {
+            'feasible_points': [0.2, 0.5, 1., 2., 5.,]
+            # 'feasible_points': [0.5, 1., 2., 5., 10.]
+        },
+        "model.lr_init": {
+            'feasible_points': [1e-5, 3e-5, 1e-4] # Consider smaller LR because AWR losses are always larger than BC.
+        },
+    },
+    "online_ft": {
+        "model.lr_init": {
+            'feasible_points': [1e-5, 3e-5, 1e-4]
+        },
+    },
     # Final v5 sweeps
     "full_scratch": {
         "model.lr_init": { # Don't sweep capacity to save budget, higher seems better in NDT3.
@@ -66,6 +138,19 @@ sweep_space = {
             'feasible_points': [3, 4, 5, 6, 7, 8] # Emergency 3x budget to tamp down on grasp variability
         }
     },
+    # https://arxiv.org/pdf/2310.16046#page19 - sweeping close to where reported values for single session are
+    # But also including large param for fairness
+    'poyo_exhaustive_control': {
+        "model.lr_init": {
+            'feasible_points': [1e-4, 5e-4, 1e-3, 4e-3]
+        },
+        "model.hidden_size": {
+            'feasible_points': [128, 256, 512]
+        },
+        "model.dropout": {
+            'feasible_points': [0.1, 0.3, 0.5],
+        },
+    },
     # Single test to illustrate variability in tunign
     "scratch_exhaustive_control": {
         "model.lr_init": {
@@ -88,6 +173,18 @@ sweep_space = {
         "model.weight_decay": {
             'feasible_points': [0.001, 0.01, 0.1],
         }
+    },
+    # Slightly adjust budget for single dataset NLB
+    "scratch_exhaustive_nlb": {
+        "model.lr_init": {
+            'feasible_points': [3e-5, 1e-4, 3e-4, 5e-4, 7e-4, 1e-3]
+        },
+        "model.hidden_size": {
+            'feasible_points': [256, 512]
+        },
+        "model.dropout": {
+            'feasible_points': [0.1, 0.3, 0.5],
+        },
     },
     "high": {
         "model.lr_init": {

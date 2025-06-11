@@ -172,6 +172,8 @@ def get_sweep_tags(variant: str):
     if EVAL_SET == 'grasp_v3':
         if 'scratch' in variant:
             return ['full_scratch', 'many_seed_scratch']
+        elif 'poyo' in variant:
+            sweep_tags = ["scratch_exhaustive_control"]
         else:
             return ['full_ft', 'many_seed_ft']
     if 'scratch' in variant:
@@ -208,6 +210,8 @@ def run_list_to_df(runs, eval_set_name: str):
         'id': map(lambda r: r.id, filter_runs),
         'variant': map(lambda r: r.config['tag'], filter_runs),
         'scale_ratio': map(lambda r: r.config['dataset']['scale_ratio'], filter_runs),
+        "hidden_size": map(lambda r: r.config['model']['hidden_size'], filter_runs),Add commentMore actions
+        "dropout": map(lambda r: r.config['model']['dropout'], filter_runs),
         'eval_set': map(lambda r: eval_set_name, filter_runs),
         'val_kinematic_r2': map(lambda r: r.summary['val_kinematic_r2']['max'], filter_runs),
         # 'seed': map(lambda r: r.config['seed'], filter_runs),
@@ -225,7 +229,7 @@ def run_list_to_df(runs, eval_set_name: str):
             df_dict[p] = list(map(lambda r: nested_get_from_config(r.config, p.split('.')), filter_runs))
     run_histories = [r.history() for r in filter_runs]
     eval_reports = [
-        rh.loc[rh['val_kinematic_r2'].idxmax()]['eval_kinematic_r2'] for rh in run_histories
+        rh.loc[rh['val_kinematic_r2'].idxmax()]['eval_kinematic_r2'] if 'eval_kinematic_r2' in rh.columns else 0 for rh in run_histories
     ]
     df_dict['eval_report'] = eval_reports
     return pd.DataFrame(df_dict)
@@ -337,11 +341,11 @@ def get_single_eval(cfg: RootConfig, src_model, dataset, stream_buffer_s=STREAM_
     return r2
 
 def process_row_wrapper(df_itertuple):
-    assert len(df_itertuple) >= 8, "8 or 9, if falcon, check eval-df.columns + 1 for df index"
-    index, run_id, variant, scale_ratio, eval_set, val_kinematic_r2, eval_report, *_ = df_itertuple
-    return process_row(index, run_id, eval_set)
+    assert len(df_itertuple) >= 9, "8 or 9, if falcon, check eval-df.columns + 1 for df index"
+    index, run_id, variant, scale_ratio, hidden_size, dropout, eval_set, val_kinematic_r2, eval_report, *_ = df_itertuple
+    return process_row(index, run_id, eval_set, hidden_size)
 
-def process_row(index: int, run_row_id: str, run_row_eval_set: str):
+def process_row(index: int, run_row_id: str, run_row_eval_set: str, hidden_size: int):
     print(f'Checking local registry: {os.getpid(), id(context_registry), len(context_registry.search_index)}')
     context_registry.query(alias='dummy') # needed to not re-init the registry in mp stream
     print(f"Checking args: {index}, {run_row_id}, {run_row_eval_set}")
@@ -429,7 +433,8 @@ def process_row(index: int, run_row_id: str, run_row_eval_set: str):
             use_kv_cache=True,
             # batch_size=1,
             batch_size=8,
-            device='cuda', # ignore device, doesn't work so well on not- gpu:0 due to different caches being inited incorrectly, need to manually pipe.?
+            hidden_size=hidden_size,
+            device='cuda', # device, doesn't work so well on not- gpu:0 due to different caches being inited incorrectly, need to manually pipe.?
         )
         payload = evaluator.evaluate(decoder, phase='test')
         eval_r2 = payload['result'][0][f'test_split_{split}']['Held Out R2 Mean']

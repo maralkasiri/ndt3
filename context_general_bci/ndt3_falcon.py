@@ -47,6 +47,7 @@ class NDT3Decoder(BCIDecoder):
             use_kv_cache: bool = False,
             batch_size: int = 1,
             device = torch.device('cuda:0'),
+            hidden_size: int = 0, # override cfg default, needed for POYO sweep
             use_slim: bool = True, # slim false only available for seq2seq path
             # No hard formula on the optimal length, but we should not go out of bounds relative to what a model has trained/tuned on.
             # H1 has excessively long timeframes - e.g. 750-1K steps
@@ -85,6 +86,8 @@ class NDT3Decoder(BCIDecoder):
         exp_stem = '/'.join(exp_stem)
         override_path = f"+exp/{exp_stem}={proper_stem}"
         cfg: RootConfig = compose(config_name="config", overrides=[override_path])
+        if hidden_size > 0:
+            cfg.model.hidden_size = hidden_size
         propagate_config(cfg)
         cfg.model.task.delete_params_on_transfer = [] # Turn off deletion! Config only used for training.
         assert task_config.bin_size_ms == cfg.dataset.bin_size_ms, "Bin size mismatch, transform not implemented."
@@ -106,14 +109,14 @@ class NDT3Decoder(BCIDecoder):
             self.model.set_streaming_timestep_limit(context_limit)
         else:
             self.model = model
-        
+
         # Internal buffers are Time x Batch x Hidden
         self.observation_buffer = torch.zeros((
             context_limit,
             self.batch_size,
             task_config.n_channels
         ), dtype=torch.uint8, device=device)
-        
+
         if ModelTask.constraints in cfg.model.task.tasks:
             assert cfg.dataset.sparse_constraints, "Only sparse constraints implemented"
         self.mock_cov = torch.zeros((self.observation_buffer.size(0), self.batch_size, self._task_config.out_dim), dtype=torch.float32, device=device)
@@ -147,7 +150,7 @@ class NDT3Decoder(BCIDecoder):
         self.mock_return = torch.zeros((1, self.batch_size), dtype=torch.float32, device=self.model.device)
         self.mock_return_time = torch.zeros((1, self.batch_size), dtype=torch.int, device=self.model.device)
         self.reset()
-        
+
     def predict(self, neural_observations: np.ndarray):
         r"""
             neural_observations: array of shape (batch, n_channels), binned spike counts
@@ -194,7 +197,7 @@ class NDT3Decoder(BCIDecoder):
             out = out.float().cpu().numpy()
         # breakpoint()
         return out
-    
+
     def observe(self, neural_observations: np.ndarray):
         r"""
             neural_observations: array of shape (batch, n_channels), binned spike counts
@@ -256,14 +259,14 @@ class NDT3SeqDecoder(NDT3Decoder):
 
     def set_batch_size(self, batch_size: int):
         raise NotImplementedError("Seq2Seq decoders do not support batch size changes, batch size 1 only.")
-        
+
     def predict(self, neural_observations: np.ndarray):
         r"""
             neural_observations: array of shape (batch, n_channels), binned spike counts
             TODO risk - we need non flash compatibility for eval server likely
         """
         self.observe(neural_observations)
-    
+
     def observe(self, neural_observations: np.ndarray):
         r"""
             neural_observations: array of shape (batch, n_channels), binned spike counts
@@ -296,8 +299,8 @@ class NDT3SeqDecoder(NDT3Decoder):
         batch[LENGTH_KEY] = torch.tensor([spikes_in.shape[0] * spikes_in.shape[-1] / self.model.data_attrs.neurons_per_token], dtype=int, device=batch[DataKey.spikes.name].device)
         mask_kin = torch.ones(self.model.data_attrs.max_trial_length, device='cuda')
         out = self.model.predict_simple_batch(
-            batch, 
-            kin_mask_timesteps=mask_kin, 
+            batch,
+            kin_mask_timesteps=mask_kin,
             seq2seq=True,
             last_step_only=True,
         )[Output.behavior_pred]

@@ -1,0 +1,14 @@
+# @package _global_
+
+# POYO attempted reproduction within NDT3 / BCI framing
+# Made as POYO codebase has take a while to come online, and isn't available yet.
+#
+
+defaults:
+  - _50
+  - ../../_scratch
+  - ../_poyo
+
+model:
+  transformer:
+    max_trial_length: 200 # 4s training for H1

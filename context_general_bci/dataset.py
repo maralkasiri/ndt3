@@ -104,6 +104,7 @@ class DataAttrs:
     sparse_rewards: bool = False # also counts for return
     tokenize_covariates: bool = False
     semantic_covariates: bool = False
+    assert_max_tokens_neural: int = 0 # If set, override autocomputation to avoid flagging checks on token count.
 
     @property
     def max_spatial_tokens(self):
@@ -111,6 +112,8 @@ class DataAttrs:
 
     @property
     def max_spatial_tokens_neural(self):
+        if self.assert_max_tokens_neural:
+            return self.assert_max_tokens_neural
         per_array = ceil(self.max_channel_count / self.neurons_per_token)
         if self.serve_tokens:
             return per_array
@@ -638,7 +641,7 @@ class SpikingDataset(Dataset):
             os.makedirs(trial_path.parent, exist_ok=True)
             shutil.copy(trial.path, trial_path)
 
-        payload = torch.load(trial_path)
+        payload = torch.load(trial_path, weights_only=False)
         # May process redundant data if we are using a subset of arrays, but easier than mucking with logic below
         if self.augment and self.cfg.rand_augmentations:
             payload = self.apply_augment(payload)
@@ -1147,6 +1150,7 @@ class SpikingDataset(Dataset):
             sparse_rewards=self.cfg.sparse_rewards,
             tokenize_covariates=self.cfg.tokenize_covariates,
             semantic_covariates=self.cfg.semantic_positions,
+            assert_max_tokens_neural=self.cfg.assert_max_tokens_neural,
         )
 
     # ==================== Data splitters ====================

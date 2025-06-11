@@ -1,0 +1,20 @@
+# @package _global_
+
+# POYO attempted reproduction within NDT3 / BCI framing
+# Made as POYO codebase has take a while to come online, and isn't available yet.
+
+dataset:
+  max_tokens: 65536 # Don't get clamped with 1 token per neuron # 176 * 50 -> 35200
+  assert_max_tokens_neural: 10 # Consistent with NDT3, override autocomputation to avoid flagging checks on token count.
+model:
+  neurons_per_token: 1 # Keep as is, we will flatten back in the task_io implementation itself.
+  transformer:
+    max_trial_length: 100 # Reduce for tractability on latent count - we're only eval-ing on 1-4s data at most
+  task:
+    tasks:
+    - ModelTask.perceiver_spike_context
+    - ModelTask.kinematic_linear # MSE head
+sweep_cfg: 'scratch_exhaustive_control'
+train:
+  max_batch_size: 128 # 40G max
+wandb_user: joelye9

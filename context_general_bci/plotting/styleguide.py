@@ -9,14 +9,27 @@ from context_general_bci.tasks.miller import MILLER_LABELS
 
 MARKER_SIZE = 120
 
-global_palette = sns.color_palette('colorblind', n_colors=11)
-# global_palette = sns.color_palette('colorblind', n_colors=7)
+global_palette = sns.color_palette('colorblind', n_colors=12)
+
+# EXTERNAL COPY
+SUBJECT_PLABEL = {
+    'CRS02b': 'P2',
+    'CRS07': 'P3',
+    'CRS08': 'P4',
+    'CRS02bLab': 'P2',
+    'CRS07Home': 'P3',
+    'CRS08Home': 'P4',
+}
+
 colormap = {
     'scratch': global_palette[0],
     'scratch_transfer': global_palette[0],
+    'scratch_transfer_subject': global_palette[0],
+    "poyo": 'k',
     'NDT3': global_palette[0],
     'NDT3 Expert': global_palette[0],
     'NDT3 mse': global_palette[0],
+    'NDT2 PT': '#8B6914', # Darker mustard
     'NDT2 Expert': global_palette[1],
     'base_45m_200h': global_palette[2],
     'base_45m_200h_mse': global_palette[2],
@@ -42,6 +55,7 @@ colormap = {
     'big_350m_2kh_smth': global_palette[3],
     'big_350m_2kh': global_palette[3],
     'big_350m_2kh_transfer': global_palette[3],
+    'big_350m_2kh_transfer_subject': global_palette[3],
     'huge_700m_2kh': global_palette[3],
     '200h_ablate_mask': 'red',
     # AHHHH
@@ -257,18 +271,18 @@ def data_label_to_target(data_label: str):
         target = [
             'odoherty_rtt-Indy-20160627_01'
         ]
-    elif data_label == 'p4_grasp':
+    elif data_label == 'crs08_grasp':
         # manual sampling https://pitt-my.sharepoint.com/:x:/r/personal/ghb14_pitt_edu/_layouts/15/Doc.aspx?sourcedoc=%7BEFCBDF63-B37B-4C60-A578-0A51AEE4157B%7D&file=U01%20Testing%20Dates.xlsx&action=default&mobileredirect=true
         target = [
-            'pitt_broad_pitt_co_P4Lab_9_.*',
-            # 'pitt_broad_pitt_co_P4Lab_10_.*',
-            # 'pitt_broad_pitt_co_P4Lab_13_.*',
-            # 'pitt_broad_pitt_co_P4Lab_14_.*',
-            # 'pitt_broad_pitt_co_P4Lab_36_.*',
+            'pitt_broad_pitt_co_CRS08Lab_9_.*',
+            # 'pitt_broad_pitt_co_CRS08Lab_10_.*',
+            # 'pitt_broad_pitt_co_CRS08Lab_13_.*',
+            # 'pitt_broad_pitt_co_CRS08Lab_14_.*',
+            # 'pitt_broad_pitt_co_CRS08Lab_36_.*',
         ]
-    elif data_label == 'p4':
+    elif data_label == 'crs08':
         target = [
-            'pitt_broad_pitt_co_P4.*',
+            'pitt_broad_pitt_co_CRS08.*',
         ]
     elif data_label == 'indy_miller':
         target = [

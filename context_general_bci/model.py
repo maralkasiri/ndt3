@@ -96,6 +96,7 @@ TASK_MODALITY_MAP = { # keys are pipeline names and some human readable terms
     'spike': SPIKE,
     'spike_context': SPIKE,
     'spike_infill': SPIKE,
+    'perceiver_spike_context': SPIKE,
     'return': RETURN,
     'return_context': RETURN,
     'return_infill': RETURN,

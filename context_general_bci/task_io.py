@@ -825,6 +825,106 @@ class SpikeBase(SpikeContext, RatePrediction):
         loss = loss[loss_mask].mean()
         return { 'loss': loss }
 
+class PerceiverSpikeContext(SpikeContext):
+    r"""
+        Perceiver-style spike context.
+        Rough-pass implementation of POYO https://arxiv.org/pdf/2310.16046, simplified for the BCI setting.
+
+    """
+    def __init__(self,
+        backbone_out_size: int,
+        channel_count: int,
+        cfg: ModelConfig,
+        data_attrs: DataAttrs,
+    ):
+        super().__init__(
+            backbone_out_size=backbone_out_size,
+            channel_count=channel_count,
+            cfg=cfg,
+            data_attrs=data_attrs
+        )
+        assert cfg.spike_embed_style == EmbedStrat.token, "Perceiver-style spike context only supports token embedding for parity with NDT3"
+        # assert cfg.assert_batch_uniform, "Perceiver-style spike context only works with uniform batch sizes in this implementation"
+        # ^ is a hard requirement but we don't actually want to trigger different codepaths...
+        self.num_latents = 8 # # Match https://arxiv.org/pdf/2310.16046#page15 and also roughly match 32 neurons per token as in NDT3
+        # ! This is also equiv to num latents - we don't need different latents for different time (just make sure you're encoding time, which NDT3 also uses ROPE for)
+        # It's rather generous, NDT usually uses 3-6 tokens per timestep
+
+        # spike_embed_dim = round(cfg.hidden_size / cfg.neurons_per_token)
+
+        spike_embed_dim = cfg.hidden_size
+        self.readin = nn.Embedding(cfg.max_neuron_count, spike_embed_dim, padding_idx=data_attrs.pad_token if data_attrs.pad_token else None)
+
+        self.latent_dim = cfg.hidden_size  # Dimension of each latent
+        self.latents = nn.Parameter(torch.randn(self.num_latents, self.latent_dim) / torch.sqrt(torch.tensor(self.latent_dim)))
+        # Redundant with main backbone position embed, but can't remove latter because it's integral to main token flow
+        self.unit_embed = nn.Embedding(data_attrs.max_channel_count, self.latent_dim)
+
+        self.cross_attention = nn.MultiheadAttention(self.latent_dim, 1, batch_first=True)
+
+    def simple_encode(self, spikes: torch.Tensor, time: torch.Tensor, position: torch.Tensor):
+        # b t c h -> b c h
+        # for ndt3 slim inference
+        # assumes no padding
+        batch_size = spikes.size(0)
+        spike_embed = self.readin(spikes.clip(max=self.readin.num_embeddings - 1).int())
+        spike_embed = rearrange(spike_embed, 'b time_space one_patch one_h hidden -> b time_space (one_patch one_h hidden)')
+        unit_pos = position.int() # Unreduced, since spikes aren't reduced yet
+        spike_embed = spike_embed + self.unit_embed(unit_pos)
+        time_steps = time.max() + 1
+        latents = repeat(self.latents, 'space h -> b (t space) h', b=batch_size, t=time_steps)
+
+        spikes_per_timestep = position.max() + 1 # Unreduced, neuron count
+        within_timestep_block = torch.ones(self.num_latents, spikes_per_timestep, device=spikes.device, dtype=torch.bool)
+        num_blocks = spike_embed.size(1) // spikes_per_timestep
+        full_mask = ~torch.block_diag(*[within_timestep_block] * num_blocks) # False is unmasked, True is masked
+        spikes, _ = self.cross_attention(latents, spike_embed, spike_embed, attn_mask=full_mask)
+        return spikes
+
+    def simple_batch_encode(self, spikes: torch.Tensor, time: torch.Tensor, space: torch.Tensor):
+        # assume no padding
+        space_mask = (space < self.num_latents) # This may be not-even across batches, which is the only issue.
+        keep_spacetime_mask = space_mask.any(dim=0)
+        return self.simple_encode(spikes, time, space), time[:, keep_spacetime_mask], space[:, keep_spacetime_mask]
+
+    def get_context(self, batch: Dict[BatchKey, torch.Tensor], ddpg_flow=False, eval_mode=False):
+        spikes = batch[DataKey.spikes.name]
+        time = batch[DataKey.time.name]
+        space = batch[DataKey.position.name]
+        padding = batch[DataKey.padding.name]
+
+        space_mask = (space < self.num_latents) & (~padding) # This may be not-even across batches, which is the only issue.
+        keep_spacetime_mask = space_mask.any(dim=0)
+
+        # We want two steps
+        # * a length reduction, operated across batch (since that's what determines whether the timestep exists)
+        time = time[:, keep_spacetime_mask]
+        space = space[:, keep_spacetime_mask]
+        # * a padding update
+        padding = (batch[DataKey.padding.name] & ~space_mask)[:, keep_spacetime_mask]
+
+        batch_size, spacetime_steps, channels, _ = spikes.size()
+        spike_embed = self.readin(spikes.clip(max=self.readin.num_embeddings - 1).int())
+        spike_embed = rearrange(spike_embed, 'b time_space one_patch one_h hidden -> b time_space (one_patch one_h hidden)')
+        unit_pos = batch[DataKey.position.name].int() # Unreduced, since spikes aren't reduced yet
+        spike_embed = spike_embed + self.unit_embed(unit_pos)
+
+        time_steps = time[~padding].max() + 1
+        latents = repeat(self.latents, 'space h -> b (t space) h', b=batch_size, t=time_steps)
+
+        # Create a causal mask
+        # (L, S) is target seq length, S is source seq length - so that's query / latents size, and key / val spikes size
+        # What I want is to make this block-lower-triangular, so that each self.num_latents in latent dimension cannot attend to spikes past the corresponding spikes per timestep
+        # Instead currently it's block diagonal, not bad, restricts latents to looking within timestep, but not lower triangular
+        # * This should be consistent across trials in a batch
+        spikes_per_timestep = batch[DataKey.position.name][~batch[DataKey.padding.name]].max() + 1 # Unreduced, neuron count
+        within_timestep_block = torch.ones(self.num_latents, spikes_per_timestep, device=spikes.device, dtype=torch.bool)
+        num_blocks = spike_embed.size(1) // spikes_per_timestep
+        full_mask = ~torch.block_diag(*[within_timestep_block] * num_blocks) # False is unmasked, True is masked
+
+        spikes, _ = self.cross_attention(latents, spike_embed, spike_embed, attn_mask=full_mask)
+        return spikes, time, space, padding
+
 
 class ShuffleInfill(SpikeBase):
     r"""
@@ -2336,9 +2436,9 @@ class CovariateLinear(TaskPipeline):
             """
             import torchmetrics
             multioutput = 'variance_weighted' if Metric.kinematic_r2_var in self.cfg.metrics else 'uniform_average'
-            self.train_r2_score = torchmetrics.R2Score(num_outputs=1) # No multioutput...
-            self.val_r2_score = torchmetrics.R2Score(num_outputs=self.cov_dims - 1, multioutput=multioutput) # -1 for padding
-            self.eval_r2_score = torchmetrics.R2Score(num_outputs=self.cov_dims - 1, multioutput=multioutput) # -1 for padding
+            self.train_r2_score = torchmetrics.R2Score() # num_outputs=1) # No multioutput...
+            self.val_r2_score = torchmetrics.R2Score(multioutput=multioutput) # num_outputs=self.cov_dims - 1, multioutput=multioutput) # -1 for padding
+            self.eval_r2_score = torchmetrics.R2Score(multioutput=multioutput) # num_outputs=self.cov_dims - 1, multioutput=multioutput) # -1 for padding
 
     @property
     def handle(self):
@@ -2932,6 +3032,7 @@ task_modules = {
     ModelTask.shuffle_infill: ShuffleInfill,
     ModelTask.spike_context: SpikeContext,
     ModelTask.spike_infill: SpikeBase,
+    ModelTask.perceiver_spike_context: PerceiverSpikeContext,
     ModelTask.next_step_prediction: NextStepPrediction,
     ModelTask.shuffle_next_step_prediction: ShuffleInfill, # yeahhhhh it's the SAME TASK WTH
     # ModelTask.shuffle_next_step_prediction: ShuffleNextStepPrediction,

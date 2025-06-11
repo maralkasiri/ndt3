@@ -168,14 +168,14 @@ if not os.getenv('NDT_SUPPRESS_DEFAULT_REGISTRY', False):
         # *GDrivePathContextInfo.build_from_dir('./data/churchland_misc', blacklist=[]),
         *GDrivePathContextInfo.build_from_dir('./data/churchland_misc', blacklist=['reggie']),
 
-        *BCIContextInfo.build_from_nested_dir(f'./data/{CLOSED_LOOP_DIR}', task_map={}, alias_prefix='closed_loop_'), # each dataset deposits into its own session folder
-        *BCIContextInfo.build_from_nested_dir(f'./data/{CLOSED_LOOP_DIR}_outpost', task_map={}, alias_prefix='closed_loop_outpost_'), # each dataset deposits into its own session folder
+        # *BCIContextInfo.build_from_nested_dir(f'./data/{CLOSED_LOOP_DIR}', task_map={}, alias_prefix='closed_loop_'), # each dataset deposits into its own session folder
+        # *BCIContextInfo.build_from_nested_dir(f'./data/{CLOSED_LOOP_DIR}_outpost', task_map={}, alias_prefix='closed_loop_outpost_'), # each dataset deposits into its own session folder
 
-        *BCIContextInfo.build_from_dir(f'./data/pitt_broad', task_map={}, alias_prefix='pitt_broad_'),
+        # *BCIContextInfo.build_from_dir(f'./data/pitt_broad', task_map={}, alias_prefix='pitt_broad_'),
         # *BCIContextInfo.build_from_dir(f'./data/pitt_bmi01_raw', task_map={}, alias_prefix='pitt_broad_'), # spike times
-        *BCIContextInfo.build_from_dir(f'./data/pitt_bmi01', task_map={}, alias_prefix='pitt_broad_'), # 30ms
-        *BCIContextInfo.build_from_dir(f'./data/chicago_human', task_map={}, alias_prefix='chicago_human_'),
-        *BCIContextInfo.build_from_dir(f'./data/pitt_parity', task_map={}, alias_prefix='parity_'), # For offline analysis, special preprocessing
+        # *BCIContextInfo.build_from_dir(f'./data/pitt_bmi01', task_map={}, alias_prefix='pitt_broad_'), # 30ms
+        # *BCIContextInfo.build_from_dir(f'./data/chicago_human', task_map={}, alias_prefix='chicago_human_'),
+        # *BCIContextInfo.build_from_dir(f'./data/pitt_parity', task_map={}, alias_prefix='parity_'), # For offline analysis, special preprocessing
 
 
         # *MillerContextInfo.build_from_dir('./data/miller/adversarial', task=ExperimentalTask.miller),
@@ -227,17 +227,17 @@ if not os.getenv('NDT_SUPPRESS_DEFAULT_REGISTRY', False):
         # Primary eval block
         *RTTContextInfo.build_preproc('./data/calib/odoherty_rtt/', alias_prefix='calib_odoherty_calib_rtt'),
         *RTTContextInfo.build_preproc('./data/calib/s1rtt/', alias_prefix='calib_s1rtt_calib_rtt', arrays=['S1']),
-        *BCIContextInfo.build_preproc('./data/calib/pitt_co', alias_prefix='calib_pitt_calib_broad_'),
-        *BCIContextInfo.build_preproc('./data/calib/pitt_co_trialized', alias_prefix='calib_pitt_trialized_broad_'),  # Dup for analysis
-        *BCIContextInfo.build_preproc('./data/calib/pitt_grasp', alias_prefix='calib_pitt_grasp_'), # GB's data
+        # *BCIContextInfo.build_preproc('./data/calib/pitt_co', alias_prefix='calib_pitt_calib_broad_'),
+        # *BCIContextInfo.build_preproc('./data/calib/pitt_co_trialized', alias_prefix='calib_pitt_trialized_broad_'),  # Dup for analysis
+        # *BCIContextInfo.build_preproc('./data/calib/pitt_grasp', alias_prefix='calib_pitt_grasp_'), # GB's data
         *BatistaContextInfo.build_from_dir('./data/calib/cst', task=ExperimentalTask.cst, alias_prefix='calib_cst_calib', preproc=True),
 
         # # Be careful - these shouldn't be trained on
         *RTTContextInfo.build_preproc('./data/eval/odoherty_rtt/', alias_prefix='eval_odoherty_eval_rtt'),
         *RTTContextInfo.build_preproc('./data/eval/s1rtt/', alias_prefix='eval_s1rtt', arrays=['S1']),
-        *BCIContextInfo.build_preproc('./data/eval/pitt_co/', alias_prefix='eval_pitt_eval_broad_'),
-        *BCIContextInfo.build_preproc('./data/eval/pitt_co_trialized/', alias_prefix='eval_pitt_trialized_broad_'),
-        *BCIContextInfo.build_preproc('./data/eval/pitt_grasp', alias_prefix='eval_pitt_grasp_'),
+        # *BCIContextInfo.build_preproc('./data/eval/pitt_co/', alias_prefix='eval_pitt_eval_broad_'),
+        # *BCIContextInfo.build_preproc('./data/eval/pitt_co_trialized/', alias_prefix='eval_pitt_trialized_broad_'),
+        # *BCIContextInfo.build_preproc('./data/eval/pitt_grasp', alias_prefix='eval_pitt_grasp_'),
         *BCIContextInfo.build_preproc('./data/eval/chicago_grasp', alias_prefix='eval_chicago_grasp_'),
         *BatistaContextInfo.build_from_dir('./data/eval/cst', task=ExperimentalTask.cst, alias_prefix='eval_cst_eval', preproc=True),
 
