@@ -1118,6 +1118,7 @@ class StreamlinedTransformer(nn.Module):
             Assumes times and positions are provided
             Out: (batch, seq_len, hidden)
         """
+        
         if False: # self.cfg.flash_as_base: # ! For compile, we haven't had these options on in a while
             hidden_states = self.dropout_in(hidden_states)
         if not self.rotary_position:

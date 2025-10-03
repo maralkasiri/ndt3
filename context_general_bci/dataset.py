@@ -592,6 +592,7 @@ class SpikingDataset(Dataset):
         # if len(self) <= self.cfg.auto_in_memory_thresh and trial.path in self.cache:
             # return self.cache[trial.path]
         # * Potential optimization point to load onto GPU directly
+        # print(trial.path)
         meta_items = {}
         # if self.context_index is None:
             # print(f'Missing context index: {self}')
@@ -1138,19 +1139,19 @@ class SpikingDataset(Dataset):
             max_arrays=self.cfg.max_arrays,
             spike_dim=1, # Higher dims not supported right now
             context=ContextAttrs(**self.context_index),
-            rtt_heldout_channel_count=self.cfg.nlb_rtt.heldout_neurons,
-            maze_heldout_channel_count=self.cfg.nlb_maze.heldout_neurons,
+            rtt_heldout_channel_count=getattr(getattr(self.cfg, 'nlb_rtt', None), 'heldout_neurons', 0),
+            maze_heldout_channel_count=getattr(getattr(self.cfg, 'nlb_maze', None), 'heldout_neurons', 0),
             behavior_dim=self.cfg.behavior_dim,
             pad_token=self.pad_value,
             max_trial_length=self.cfg.max_trial_length,
             serve_tokens=self.cfg.serve_tokenized,
             serve_tokens_flat=self.cfg.serve_tokenized_flat,
             neurons_per_token=self.cfg.neurons_per_token,
-            sparse_constraints=self.cfg.sparse_constraints,
-            sparse_rewards=self.cfg.sparse_rewards,
+            sparse_constraints=getattr(self.cfg, 'sparse_constraints', False),
+            sparse_rewards=getattr(self.cfg, 'sparse_rewards', False),
             tokenize_covariates=self.cfg.tokenize_covariates,
-            semantic_covariates=self.cfg.semantic_positions,
-            assert_max_tokens_neural=self.cfg.assert_max_tokens_neural,
+            semantic_covariates=getattr(self.cfg, 'semantic_positions', False),
+            assert_max_tokens_neural=getattr(self.cfg, 'assert_max_tokens_neural', 0),
         )
 
     # ==================== Data splitters ====================

@@ -46,6 +46,8 @@ class ExperimentalTask(OrderedEnum):
 
     mock_half_falcon_m1 = "mock_half_falcon_m1"
 
+    generalized_click = "generalized_click"
+
 from .task_registry import ExperimentalTaskRegistry, ExperimentalTaskLoader
 # Exports
 from .nlb import MazeLoader, RTTLoader
@@ -70,3 +72,4 @@ from .limblab import LimbLabLoader
 from .deo import DeoLoader
 from .falcon import FalconLoader
 from .nwb_base import NWBLoader
+from .gc_nwb_loader import GCNWBLoader

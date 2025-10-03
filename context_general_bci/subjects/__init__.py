@@ -59,6 +59,9 @@ class SubjectName(OrderedEnum):
     chestek_generic = 'Chestek_Generic'
     limblab_generic = 'LimbLab_Generic'
 
+    brnbciP2 = 'brnbciP2'
+    brnbciP3 = 'brnbciP3'
+
 from .array_info import SubjectInfo, ArrayInfo, ArrayID, GeometricArrayInfo, AliasArrayInfo, SortedArrayInfo
 from .array_registry import SubjectArrayRegistry, create_spike_payload
 # ? Should we be referencing this instance or the class in calls? IDK
@@ -67,3 +70,4 @@ subject_array_registry = SubjectArrayRegistry()
 # These import lines ensure registration
 from . import pitt_chicago
 from . import nlb_monkeys
+

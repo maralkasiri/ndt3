@@ -351,6 +351,9 @@ def streaming_eval(
                             inference_params.seqlen_offset = inference_params.seqlen_offset - (num_kin - 1)
                 if DataKey.constraint.name in parity_batch:
                     parity_batch[DataKey.constraint.name] = shift_constraint(parity_batch[DataKey.constraint.name], kappa_bias)
+                 # If cropping produced an empty window, skip this step
+                if parity_batch[DataKey.spikes.name].size(1) == 0:
+                    continue
                 output = model.predict_simple_batch( # Match streaming API _exactly_, see `rtndt.accelerators` call in CLIMBER
                     parity_batch,
                     kin_mask_timesteps=kin_mask_timesteps,
@@ -372,6 +375,9 @@ def streaming_eval(
                 if DataKey.constraint.name in parity_batch:
                     output[Output.constraint_observed] = parity_batch[DataKey.constraint.name][0, -1 * len(labels):]
                 stream_output.append(output)
+            # If no valid streaming windows were produced for this trial, skip it
+            if len(stream_output) == 0:
+                continue
             output = stack_batch(stream_output) # concat behavior preds
             if transform_batch:
                 breakpoint()
@@ -401,6 +407,11 @@ def streaming_eval(
         output = simple_unflatten_batch(output, ref_batch=batch)
         output[Output.pseudo_trial] = torch.full(output[Output.behavior].shape[:2], i, dtype=torch.int)
         outputs.append(output)
+     
+    if len(outputs) == 0:
+        raise RuntimeError(
+            "No streaming eval windows produced. Try lowering compute_buffer_s or stream_buffer_s, or ensure trials exceed the buffer."
+        )
 
     outputs = stack_batch(outputs, merge_tensor='cat')
     prediction = outputs[Output.behavior_pred].cpu()
