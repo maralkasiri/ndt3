@@ -47,6 +47,7 @@ class ExperimentalTask(OrderedEnum):
     mock_half_falcon_m1 = "mock_half_falcon_m1"
 
     generalized_click = "generalized_click"
+    brain2txt = "brain2txt"
 
 from .task_registry import ExperimentalTaskRegistry, ExperimentalTaskLoader
 # Exports
@@ -73,3 +74,4 @@ from .deo import DeoLoader
 from .falcon import FalconLoader
 from .nwb_base import NWBLoader
 from .gc_nwb_loader import GCNWBLoader
+from .brain2txt_nwb_loader import brain2txtNWBLoader

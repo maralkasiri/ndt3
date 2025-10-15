@@ -61,6 +61,7 @@ class SubjectName(OrderedEnum):
 
     brnbciP2 = 'brnbciP2'
     brnbciP3 = 'brnbciP3'
+    brain2txt_T15 = 'brain2txt_T15'
 
 from .array_info import SubjectInfo, ArrayInfo, ArrayID, GeometricArrayInfo, AliasArrayInfo, SortedArrayInfo
 from .array_registry import SubjectArrayRegistry, create_spike_payload
