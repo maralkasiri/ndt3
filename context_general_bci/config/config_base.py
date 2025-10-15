@@ -146,6 +146,7 @@ class DataKey(Enum):
     condition = 'condition' # Only supported for specific tasks where condition is defined!
     # For some mainline data (e.g. pitt), if you want data keys to be included in preproc, you must specify this key during preproc
     # For other eval tasks, it's automatically included due to low bandwidth burden.
+    text = 'text_tokens'
 
 
 class MetaKey(Enum):
