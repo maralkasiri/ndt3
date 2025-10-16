@@ -34,6 +34,42 @@ class NWBExtract(NamedTuple):
     meta: Dict[str, Any]
 
 
+from typing import List, Optional, Dict, Any, Tuple, NamedTuple
+from pathlib import Path
+import logging
+import numpy as np
+import pandas as pd
+import torch
+from einops import rearrange
+from pynwb import NWBHDF5IO
+import h5py
+import fsspec
+
+from context_general_bci.config import DataKey, DatasetConfig, MetaKey, LENGTH
+from context_general_bci.subjects import SubjectInfo, SubjectArrayRegistry, create_spike_payload
+from context_general_bci.tasks import ExperimentalTask, ExperimentalTaskLoader, ExperimentalTaskRegistry
+from context_general_bci.tasks.preproc_utils import (
+    chop_vector,
+    compress_vector,
+    get_minmax_norm,
+    apply_minmax_norm,
+    heuristic_sanitize_payload
+)
+
+logger = logging.getLogger(__name__)
+
+
+class NWBExtract(NamedTuple):
+    """Container for extracted NWB data"""
+    data: np.ndarray
+    time: np.ndarray
+    start_time: Optional[float]
+    end_time: Optional[float]
+    labels: Optional[List[str]]
+    patient_id: Optional[str]
+    meta: Dict[str, Any]
+
+
 @ExperimentalTaskRegistry.register
 class brain2txtNWBLoader(ExperimentalTaskLoader):
     """
@@ -183,6 +219,8 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
                 neural_data = extract.data
                 timestamps = extract.time
                 trials_df = pd.DataFrame()  # Empty for now, could be populated from extract.labels
+
+                print(1)
                 
             else:
                 # Local file loading
@@ -191,6 +229,7 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
                     
                     # Extract neural data
                     acq_keys = list(nwbfile.acquisition.keys())
+                    print(acq_keys)
                     if not acq_keys:
                         raise ValueError("No acquisition data found in NWB file")
                     
@@ -235,19 +274,14 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
         # Look for behavioral data in trials_df or create dummy data
         if not trials_df.empty:
             # Look for velocity columns
-            vel_cols = [col for col in trials_df.columns if 'vel' in col.lower() or 'velocity' in col.lower()]
-            if vel_cols:
-                behavior_cols = vel_cols
-                # TODO: Properly align behavioral data with neural data timestamps
-                logger.warning("Behavioral data alignment not implemented - using dummy data")
-        
+            print('Trials dataframe is not empty!')
+            behavior_cols = [col for col in trials_df.columns if 'label' in col.lower() or 'sentence_label' in col.lower()]
+     
         # If no behavioral data found, create dummy velocity data
         if len(behavior_cols) == 0:
-            behavior_cols = ['vel_x', 'vel_y']
-            covariates = np.zeros((neural_data.shape[0], 2))
+            behavior_cols = ['label']
+            covariates = np.zeros((neural_data.shape[0], 1))
         
-        # Generate a run key for this session
-        run_key = f"{session}_{dataset_alias}"
         
         # Convert to tensors
         neural_data_tensor = torch.tensor(neural_data, dtype=torch.float32)
@@ -277,60 +311,63 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
         cache_root.mkdir(parents=True, exist_ok=True)
         
         for trial_idx in range(n_trials):
-            start_idx = trial_idx * trial_length_bins
-            end_idx = min(start_idx + trial_length_bins, n_time_bins)
-            
-            actual_length = end_idx - start_idx
-            if actual_length < min_trial_length:
-                logger.info(f"Skipping trial {trial_idx} - too short ({actual_length} < {min_trial_length})")
-                continue
-            
-            # Extract trial data - NO ADDITIONAL BINNING
-            trial_spikes = neural_data_tensor[start_idx:end_idx]  # Already binned!
-            trial_behavior = covariates_tensor[start_idx:end_idx]
-            trial_timestamps = timestamps_tensor[start_idx:end_idx]
-            
-            # Add the required third dimension for spikes (Height=1)
-            trial_spikes = trial_spikes.unsqueeze(-1)  # (T, C) -> (T, C, 1)
-            
-            # Normalize timestamps to start from 0
-            trial_timestamps = trial_timestamps - trial_timestamps[0]
-    
-            # Create trial data dictionary
-            trial_file = cache_root / f'trial_{run_key}_{trial_idx}.pth'
 
-            trial_data = {
-                DataKey.spikes: {"brain2txt_T15-NSP": trial_spikes},
-                DataKey.bhvr_vel: trial_behavior,
-                DataKey.time: trial_timestamps,
-                DataKey.covariate_labels: behavior_cols, 
-                MetaKey.session: session,
-                MetaKey.subject: subject.name,
-                MetaKey.array: "brain2txt_T15-NSP",
-                MetaKey.trial: trial_idx,
-                MetaKey.task: ExperimentalTask.generalized_click,
-                LENGTH: actual_length,  # Use the LENGTH constant
-                'trial_start_time': float(timestamps[start_idx]),
-                'run_key': run_key,
-                'session_id': session,
-            }
-            
-            # Save trial data
-            torch.save(trial_data, trial_file, _use_new_zipfile_serialization=False)
-            
-            # Add row to DataFrame
-            trials_data.append({
-                'path': str(trial_file),
-                'trial_idx': trial_idx,
-                'run_key': run_key,
-                LENGTH: actual_length,  # Use LENGTH constant for consistency
-                'start_time': float(timestamps_tensor[start_idx].item()),
-            })
-            
-            # Clean up memory periodically
-            if trial_idx % 10 == 0:
-                import gc
-                gc.collect()
+            if trial_idx <5:
+                start_idx = trial_idx * trial_length_bins
+                end_idx = min(start_idx + trial_length_bins, n_time_bins)
+                
+                actual_length = end_idx - start_idx
+                if actual_length < min_trial_length:
+                    logger.info(f"Skipping trial {trial_idx} - too short ({actual_length} < {min_trial_length})")
+                    continue
+                
+                # Extract trial data - NO ADDITIONAL BINNING
+                trial_spikes = neural_data_tensor[start_idx:end_idx]  # Already binned! Shape: (T, C)
+                trial_behavior = covariates_tensor[start_idx:end_idx]
+                trial_timestamps = timestamps_tensor[start_idx:end_idx]
+                
+                # Add height dimension if needed (T, C) -> (T, C, 1)
+                if trial_spikes.ndim == 2:
+                    trial_spikes = trial_spikes.unsqueeze(-1)
+                
+                # Normalize timestamps to start from 0
+                trial_timestamps = trial_timestamps - trial_timestamps[0]
+        
+                # Create trial data dictionary
+                trial_file = cache_root / f'trial_{trial_idx}.pth'
+                
+                
+
+                trial_data = {
+                    DataKey.spikes: {"brain2txt_T15-NSP": trial_spikes},  # This includes the properly formatted spike data
+                    DataKey.text: trial_behavior,
+                    DataKey.time: trial_timestamps,
+                    DataKey.covariate_labels: behavior_cols, 
+                    MetaKey.session: session,
+                    MetaKey.subject: subject.name,
+                    MetaKey.array: "brain2txt_T15-NSP",
+                    MetaKey.trial: trial_idx,
+                    MetaKey.task: ExperimentalTask.brain2txt,  # Use the correct task
+                    'trial_start_time': timestamps[start_idx],
+                    'length': actual_length,  # Track actual trial length
+                    'session_id': session,
+                }
+                
+                # Save trial data
+                torch.save(trial_data, trial_file, _use_new_zipfile_serialization=False)
+                
+                # Add row to DataFrame
+                trials_data.append({
+                    'path': str(trial_file),
+                    'trial_idx': trial_idx,
+                    LENGTH: actual_length,  # Use LENGTH constant for consistency
+                    'start_time': float(timestamps_tensor[start_idx].item()),
+                })
+                
+                # Clean up memory periodically
+                if trial_idx % 10 == 0:
+                    import gc
+                    gc.collect()
         
         logger.info(f"Total trials created: {len(trials_data)}")
         
@@ -342,10 +379,9 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
         else:
             logger.warning("No trials created!")
             # Return empty DataFrame with expected columns
-            df = pd.DataFrame(columns=['path', 'trial_idx', 'run_key', LENGTH, 'start_time'])
+            df = pd.DataFrame(columns=['path', 'trial_idx', LENGTH, 'start_time'])
         
         return df
-
 
     # @classmethod
     # def load(
