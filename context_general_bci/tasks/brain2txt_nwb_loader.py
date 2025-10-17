@@ -98,6 +98,7 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
 
         # MATERIALIZE arrays NOW (while file is open)
         data = np.asarray(ts.data[:])
+        print(data)
 
         # build time array
         if getattr(ts, "timestamps", None) is not None and ts.timestamps is not None:
@@ -131,14 +132,20 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
                 for col in ["label", "labels", "sentence", "text", "trial_type", "stimulus", "word"]:
                     if col in df.columns:
                         labels = df[col].tolist()
+                        print(labels)
                         break
             except Exception:
                 pass
 
         patient_id = None
-        if getattr(nwbfile, "subject", None) is not None and nwbfile.subject is not None:
+        if getattr(nwbfile, "subject_id", None) is not None and nwbfile.subject_id is not None:
             patient_id = getattr(nwbfile.subject, "subject_id", None)
+        
+        if getattr(nwbfile, "session_id", None) is not None and nwbfile.session_id is not None:
+            session_id = getattr(nwbfile.session_id, "session_id", None)
 
+        print(f"patient ID: {patient_id}")
+        print(f"session ID: {session_id}")
         meta = {
             "acquisition_name": acquisition_name,
             "sampling_rate": getattr(ts, "rate", None),
@@ -155,6 +162,7 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
             end_time=end_time,
             labels=labels,
             patient_id=patient_id,
+            session=session_id,
             meta=meta
         )
 
@@ -205,116 +213,92 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
         """
         
         logger.info(f"Loading {datapath}")
-        
         trials_data = []
+        print("Loading using brain2txtNWBLoader!")
         
         try:
-            # Check if this is an S3 path
-            if str(datapath).startswith('s3://'):
-                extract = cls._load_nwb_from_s3_and_extract(
-                    str(datapath),
-                    anon=kwargs.get('anon', False),
-                    acquisition_name=kwargs.get('acquisition_name', None)
-                )
-                neural_data = extract.data
-                timestamps = extract.time
-                trials_df = pd.DataFrame()  # Empty for now, could be populated from extract.labels
-
-                print(1)
+            # Local file loading
+            with NWBHDF5IO(str(datapath), 'r', load_namespaces=True) as io:
+                nwbfile = io.read()
+        
+                # Extract neural data
+                acq_keys = list(nwbfile.acquisition.keys())
+                print(acq_keys)
+                if not acq_keys:
+                    raise ValueError("No acquisition data found in NWB file")
                 
-            else:
-                # Local file loading
-                with NWBHDF5IO(str(datapath), 'r', load_namespaces=True) as io:
-                    nwbfile = io.read()
-                    
-                    # Extract neural data
-                    acq_keys = list(nwbfile.acquisition.keys())
-                    print(acq_keys)
-                    if not acq_keys:
-                        raise ValueError("No acquisition data found in NWB file")
-                    
-                    # Use first acquisition or look for specific names
-                    acquisition_name = None
-                    for key in acq_keys:
-                        if "BinnedSpikes" in key or "SpikeBandPower" in key:
-                            acquisition_name = key
-                            break
-                    if acquisition_name is None:
-                        acquisition_name = acq_keys[0]
-                    
-                    ts = nwbfile.acquisition[acquisition_name]
-                    neural_data = np.asarray(ts.data[:])
-                    
-                    # Get timestamps
-                    if hasattr(ts, 'timestamps') and ts.timestamps is not None:
-                        timestamps = np.asarray(ts.timestamps[:])
-                    else:
-                        # Generate timestamps from rate
-                        rate = ts.rate if hasattr(ts, 'rate') else 1000.0  # Default 1kHz
-                        starting_time = ts.starting_time if hasattr(ts, 'starting_time') else 0.0
-                        n_samples = neural_data.shape[0]
-                        timestamps = starting_time + np.arange(n_samples) / rate
-                    
-                    # Try to get trials dataframe
-                    trials_df = pd.DataFrame()
-                    if hasattr(nwbfile, 'trials'):
-                        try:
-                            trials_df = nwbfile.trials.to_dataframe()
-                        except Exception as e:
-                            logger.warning(f"Could not load trials table: {e}")
+                acquisition_name = acq_keys[0]
+                
+                ts = nwbfile.acquisition[acquisition_name]
+                neural_data = np.asarray(ts.data[:])
+                print(f"Neural daata shape: {neural_data.shape}")
+                
+                # Get timestamps
+                if hasattr(ts, 'timestamps') and ts.timestamps is not None:
+                    print("Loading time stamps")
+                    timestamps = np.asarray(ts.timestamps[:])
+                else:
+                    print("No time stamps found, using starting time!")
+                    # Generate timestamps from rate
+                    rate = ts.rate if hasattr(ts, 'rate') else 50.0  # Default 50hz
+                    starting_time = ts.starting_time if hasattr(ts, 'starting_time') else 0.0
+                    n_samples = neural_data.shape[0]
+                    timestamps = starting_time + np.arange(n_samples) / rate
+                
+                # Try to get trials dataframe
+                if hasattr(nwbfile, 'intervals'):
+                    trials_df = nwbfile.intervals['trials'].to_dataframe()
+                    phonemes_df = nwbfile.intervals['phonemes'].to_dataframe()
+                
+                # One hot encode the labels
+                labels = np.asarray(phonemes_df['label'])
+                unique_labels = np.unique(labels)  # returns sorted unique values
+                label_to_idx = {label: i for i, label in enumerate(unique_labels)}
+                one_hot = np.eye(len(unique_labels))[ [label_to_idx[l] for l in labels] ]
+                print(f"One hot shape: {one_hot.shape}")
 
         except Exception as e:
             logger.error(f"Failed to load {datapath}: {e}")
             raise
         
-        # Process behavioral data if available
-        behavior_cols = []
-        covariates = np.zeros((neural_data.shape[0], 0))  # Empty by default
-        
-        # Look for behavioral data in trials_df or create dummy data
-        if not trials_df.empty:
-            # Look for velocity columns
-            print('Trials dataframe is not empty!')
-            behavior_cols = [col for col in trials_df.columns if 'label' in col.lower() or 'sentence_label' in col.lower()]
-     
-        # If no behavioral data found, create dummy velocity data
-        if len(behavior_cols) == 0:
-            behavior_cols = ['label']
-            covariates = np.zeros((neural_data.shape[0], 1))
-        
-        
+    
         # Convert to tensors
         neural_data_tensor = torch.tensor(neural_data, dtype=torch.float32)
-        covariates_tensor = torch.tensor(covariates, dtype=torch.float32)
+        covariates_tensor = torch.tensor(one_hot, dtype=torch.float32)
         timestamps_tensor = torch.tensor(timestamps, dtype=torch.float32)
+        print(neural_data_tensor.shape)
+        print(covariates_tensor.shape)
+        print(timestamps_tensor.shape)
 
         # Simple trial creation - just segment the already-binned data
         n_time_bins, n_channels = neural_data.shape
         min_trial_length = 50  # Minimum 50 time bins per trial
+        n_trials = len(trials_df)
+
         
-        # Get trial length from config, default to 1500ms
-        max_trial_length_ms = getattr(cfg, 'max_trial_length', 1500)
-        bin_size_ms = getattr(cfg, 'bin_size_ms', 20)  # Assume 20ms bins if not specified
-        trial_length_bins = max_trial_length_ms // bin_size_ms
-        trial_length_bins = max(min_trial_length, trial_length_bins)
+        # # Get trial length from config, default to 1500
+        # max_trial_length_ms = getattr(cfg, 'max_trial_length', 1500)
+        # bin_size_ms = getattr(cfg, 'bin_size_ms', 20)  # Assume 20ms bins if not specified
+        # trial_length_bins = max_trial_length_ms // bin_size_ms
+        # trial_length_bins = max(min_trial_length, trial_length_bins)
         
-        if n_time_bins < min_trial_length:
-            logger.info(f"Using entire sequence as one trial ({n_time_bins} bins)")
-            n_trials = 1
-            trial_length_bins = n_time_bins
-        else:
-            n_trials = max(1, n_time_bins // trial_length_bins)
+        # if n_time_bins < min_trial_length:
+        #     logger.info(f"Using entire sequence as one trial ({n_time_bins} bins)")
+        #     n_trials = 1
+        #     trial_length_bins = n_time_bins
+        # else:
+        #     n_trials = max(1, n_time_bins // trial_length_bins)
         
-        logger.info(f"Creating {n_trials} trials of ~{trial_length_bins} bins each")
+        logger.info(f"Creating {n_trials} trials")
         
         # Create cache directory if it doesn't exist
         cache_root.mkdir(parents=True, exist_ok=True)
         
-        for trial_idx in range(n_trials):
-
+        for trial_idx, trial_row in trials_df.iterrows():
+            
             if trial_idx <5:
-                start_idx = trial_idx * trial_length_bins
-                end_idx = min(start_idx + trial_length_bins, n_time_bins)
+                start_idx = int(trial_row['start_time'] * rate)
+                end_idx = int(trial_row['stop_time'] * rate)
                 
                 actual_length = end_idx - start_idx
                 if actual_length < min_trial_length:
@@ -323,8 +307,12 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
                 
                 # Extract trial data - NO ADDITIONAL BINNING
                 trial_spikes = neural_data_tensor[start_idx:end_idx]  # Already binned! Shape: (T, C)
-                trial_behavior = covariates_tensor[start_idx:end_idx]
+                trial_text = trial_row['sentence_label']
                 trial_timestamps = timestamps_tensor[start_idx:end_idx]
+
+                indices = phonemes_df.index[phonemes_df["trial_id"] == trial_idx]
+                trial_behavior = covariates_tensor[indices]
+                
                 
                 # Add height dimension if needed (T, C) -> (T, C, 1)
                 if trial_spikes.ndim == 2:
@@ -336,13 +324,11 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
                 # Create trial data dictionary
                 trial_file = cache_root / f'trial_{trial_idx}.pth'
                 
-                
-
                 trial_data = {
                     DataKey.spikes: {"brain2txt_T15-NSP": trial_spikes},  # This includes the properly formatted spike data
                     DataKey.text: trial_behavior,
                     DataKey.time: trial_timestamps,
-                    DataKey.covariate_labels: behavior_cols, 
+                    DataKey.covariate_labels: trial_text, 
                     MetaKey.session: session,
                     MetaKey.subject: subject.name,
                     MetaKey.array: "brain2txt_T15-NSP",
@@ -364,7 +350,7 @@ class brain2txtNWBLoader(ExperimentalTaskLoader):
                     'start_time': float(timestamps_tensor[start_idx].item()),
                 })
                 
-                # Clean up memory periodically
+                # Clean up memory 
                 if trial_idx % 10 == 0:
                     import gc
                     gc.collect()
