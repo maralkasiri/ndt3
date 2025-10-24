@@ -107,6 +107,7 @@ TASK_MODALITY_MAP = { # keys are pipeline names and some human readable terms
     'kinematic_linear': COVARIATE,
     'kinematic_probe': COVARIATE,
     'seq_decoding': COVARIATE,
+    'phoneme_decoding': COVARIATE,
 }
 
 def get_task_dimensionality_range(task: str, data_attrs: DataAttrs):

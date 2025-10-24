@@ -76,6 +76,7 @@ class Metric(Enum):
     all_loss = 'all_loss'
 
     cer = 'cer' # h2, character error rate
+    cross_entropy = 'cross_entropy'
 
 class Output(Enum):
     # Various keys for different vectors model produces
